@@ -1,8 +1,6 @@
-mod vec3;
-mod vec4;
-mod mat4;
+mod cls;
 
-pub use vec3::Vector3;
-pub use vec4::Vector4;
-// pub use matrix::Matrix;
-// pub use matrix::RotationMatrix;
+pub use cls::vec3::Vector3;
+pub use cls::vec4::Vector4;
+pub use cls::quat::Quaternion;
+pub use cls::mat4::Mat4x4;
