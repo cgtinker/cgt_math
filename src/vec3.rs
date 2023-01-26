@@ -27,19 +27,33 @@ impl Vector3 {
     /// # Example
     /// ```
     /// use cgt_math::Vector3;
-    /// let a = Vector3::new(3.0, 2.0, 1.0);
+    /// let a = Vector3::new(0.0, 0.0, 0.0);
+    /// assert_eq!(a, Vector3::ZERO);
     /// ```
+    #[inline]
     pub const fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
     }
 
     /// Creates a new vector from an array.
+    /// # Example
+    /// ```
+    /// use cgt_math::Vector3;
+    /// let vec = Vector3::from_array([1.0, 1.0, 1.0]);
+    /// assert_eq!(vec, Vector3::ONE);
+    /// ```
     #[inline]
     pub const fn from_array(a: [f32; 3]) -> Self {
         Self::new(a[0], a[1], a[2])
     }
 
-    /// `[x, y, z]`
+    /// Creates array from vector
+    /// # Example
+    /// ```
+    /// use cgt_math::Vector3;
+    /// let vec = Vector3::from_array([1.0, 1.0, 1.0]);
+    /// assert_eq!(vec.to_array(), [1.0, 1.0, 1.0]);
+    /// ```
     #[inline]
     pub const fn to_array(&self) -> [f32; 3] {
         [self.x, self.y, self.z]
@@ -66,7 +80,7 @@ impl Vector3 {
     pub fn is_infinite(&self) -> bool {
         self.x.is_infinite() || self.y.is_infinite() || self.z.is_infinite()
     }
-    
+
     /// Returns if any vector componet is not finite.
     /// # Example
     /// ```
@@ -253,6 +267,21 @@ impl Vector3 {
         }
     }
 
+    /// Negates vector.
+    /// # Example:
+    /// ```
+    /// use cgt_math::Vector3;
+    /// let a = Vector3::new(12.0, -3.0, 4.0);
+    /// let b = Vector3::new(-12.0, 3.0, -4.0);
+    /// assert_eq!(a.neg(), b);
+    /// ```
+    pub fn neg(&self) -> Self {
+        Self {
+            x: self.x.neg(),
+            y: self.y.neg(),
+            z: self.z.neg(),
+        }
+    }
     /// Returns dot product of this with another vector.
     /// # Example:
     /// ```

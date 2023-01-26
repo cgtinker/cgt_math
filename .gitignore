@@ -1,3 +1,7 @@
 /target
+
 *.swp
 Cargo.lock
+
+/.venv
+/.idea

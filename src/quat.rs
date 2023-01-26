@@ -1,14 +1,12 @@
-use super::{vec3, vec4, mat3};
+use crate::Vector3;
+use crate::Vector4;
+use crate::RotationMatrix;
 
-use vec3::Vector3;
-use vec4::Vector4;
-use mat3::RotationMatrix;
-
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign, Index};
+use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign, Index};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Quaternion {
-    q: Vector4,
+    pub q: Vector4,
 }
 
 impl Quaternion {
@@ -113,7 +111,7 @@ impl Quaternion {
 
     /// From the columns of a 3x3 rotation matrix.
     #[inline]
-    pub(crate) fn from_rotation_axes(x: Vector3, y: Vector3, z: Vector3) -> Self {
+    pub fn from_rotation_axes(x: Vector3, y: Vector3, z: Vector3) -> Self {
         // Based on https://github.com/microsoft/DirectXMath `XM$quaternionRotationMatrix`
         let (m00, m01, m02) = (x.x, x.y, x.z);
         let (m10, m11, m12) = (y.x, y.y, y.z);
@@ -508,40 +506,22 @@ impl Mul<f32> for Quaternion {
 impl Mul<Quaternion> for Quaternion {
     type Output = Quaternion;
     fn mul(self, other: Self) -> Self::Output {
-        let q1 = self.q;
-        let q2 = other.q;
-
-        let x = q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
-        let y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
-        let z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
-        let w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
-        Self { q: Vector4 { x: x, y: y, z: z, w: w } }
+        Self { q: Vector4::mul(self.q, other.q) }
     }
 }
 
+// Quat mul
 impl MulAssign for Quaternion {
     fn mul_assign(&mut self, other: Self) {
-        *self = Self { q: self.q * other.q }
-    }
-}
+        let a = self.q;
+        let b = other.q;
 
-impl Div<f32> for Quaternion {
-    type Output = Quaternion;
-    fn div(self, val: f32) -> Self::Output {
-        Self { q: Vector4::div(self.q, val) }
-    }
-}
-
-impl Div<Quaternion> for Quaternion {
-    type Output = Quaternion;
-    fn div(self, other: Self) -> Self::Output {
-        Self { q: Vector4::div(self.q, other.q) }
-    }
-}
-
-impl DivAssign for Quaternion {
-    fn div_assign(&mut self, other: Self) {
-        *self = Self { q: self.q / other.q }
+        let w = a[1] * b[1] - a[2] * b[2] - a[3] * b[3] - a[0] * b[0];
+        let x = a[1] * b[2] + a[2] * b[1] + a[3] * b[0] - a[0] * b[3];
+        let y = a[1] * b[3] + a[3] * b[1] + a[0] * b[2] - a[2] * b[0];
+        let z = a[1] * b[0] + a[0] * b[1] + a[2] * b[3] - a[3] * b[2];
+        let q = Self { q: Vector4 { x: x, y: y, z: z, w: w } };
+        *self = q
     }
 }
 

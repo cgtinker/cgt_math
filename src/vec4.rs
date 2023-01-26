@@ -426,6 +426,24 @@ impl Vector4 {
     pub fn lerp(self, rhs: Self, s: f32) -> Self {
         self + ((rhs - self) * s)
     }
+
+    pub fn merge_xy(&self, rhs: Self) -> Self {
+        Self {
+            x: self.x,
+            y: rhs.x,
+            z: self.y,
+            w: rhs.y,
+        }
+    }
+
+    pub fn merge_zw(&self, rhs: Self) -> Self {
+        Self {
+            x: self.z,
+            y: rhs.z,
+            z: self.w,
+            w: rhs.w,
+        }
+    }
 }
 
 impl Add for Vector4 {
