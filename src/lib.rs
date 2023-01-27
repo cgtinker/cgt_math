@@ -9,4 +9,4 @@ pub use algebra::euler::EulerOrder;
 
 mod geometry;
 pub use geometry::face::Face;
-pub use geometry::circle::Circle;
+pub use geometry::points::Points;

@@ -472,9 +472,15 @@ impl Vector3 {
     }
 
     pub fn perpendicular(&self) -> Self {
-        if self.x != 0.0 { Self::new(-self.y/self.x, 1.0, 0.0) }
-        else if self.y != 0.0 { Self::new(0.0, -self.z/self.y, 1.0) }
-        else { Self::new(1.0, 0.0, 0.0) }
+        if self.x != 0.0 {
+            Self::new(-self.y/self.x, 1.0, 0.0)
+        }
+        else if self.y != 0.0 {
+            Self::new(0.0, -self.z/self.y, 1.0)
+        }
+        else {
+            Self::new(1.0, 0.0, -self.x/self.z)
+        }
     }
 
     /// Returns the inverse of this vector.
@@ -640,3 +646,4 @@ impl Index<usize> for Vector3 {
         }
     }
 }
+
