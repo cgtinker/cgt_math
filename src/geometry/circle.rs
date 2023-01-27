@@ -17,7 +17,7 @@ impl Circle {
         res
     }
 
-    pub fn from_angle(center: Vector3, radius: f32, angle: f32, points: usize) -> Self {
+    pub fn circle_from_angle(center: Vector3, radius: f32, angle: f32, points: usize) -> Self {
         let thetha: Vec<f32> = Self::linspace(0.0, 2.0*PI, points);
         let mut vec = Vec::with_capacity(points);
         for i in 0..points {
@@ -36,7 +36,7 @@ impl Circle {
 
     /// U & V have to be normalized!
     /// TODO: Panic if not normalized
-    pub fn from_uv(center: Vector3, u: Vector3, v: Vector3, radius: f32, points: usize) -> Self {
+    pub fn circle_from_uv(center: Vector3, u: Vector3, v: Vector3, radius: f32, points: usize) -> Self {
         let v = u.cross(v);;
 
         let thetha = Self::linspace(0.0, 2.0*PI, points);
@@ -54,17 +54,5 @@ impl Circle {
             vec.push(point);
         }
         Self { points: vec }
-    }
-
-    pub fn from_vector(center: Vector3, vec: Vector3, radius: f32, points: usize) -> Self {
-        // searching for perpendicualar vector
-        if vec.x != 0.0f32:
-            let u = Vector3::new(-vec.y / vec.x, 1.0, 0.0);
-        else if vec.y != 0.0f32:
-            let u = Vector3::new(0.0, -vec.z / vec.y, 1.0);
-        else:
-            let u = Vector3::new(1.0, 0.0, -vec.x / vec.z);
-
-        along_vectors(center, u, v, radius, points)
     }
 }

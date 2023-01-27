@@ -1,4 +1,3 @@
-
 use crate::{Vector3, Quaternion};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

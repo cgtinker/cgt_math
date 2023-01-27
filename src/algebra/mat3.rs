@@ -1,8 +1,7 @@
 use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign};
 use std::fmt;
 
-use crate::Vector3;
-use crate::Quaternion;
+use crate::{Vector3, Quaternion};
 
 #[derive(Clone, Copy)]
 pub struct RotationMatrix {
