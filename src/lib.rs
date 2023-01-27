@@ -8,3 +8,6 @@ mod mat3;
 pub use mat3::RotationMatrix;
 mod mat4;
 pub use mat4::Mat4x4;
+mod euler;
+pub use euler::Euler;
+pub use euler::EulerOrder;
