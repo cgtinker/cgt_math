@@ -73,7 +73,7 @@ impl Points {
         Self { vec: vec }
     }
 
-    fn spiral_properties(turns: f32, mut steps: f32, radius: f32, z_incr: f32, dif_radius: f32, clockwise: bool) -> 
+    fn archemedian_spiral_properties(turns: f32, mut steps: f32, radius: f32, z_incr: f32, dif_radius: f32, clockwise: bool) -> 
         (f32, f32, f32, f32, f32, f32, f32, Vec<Vector3>) {
 
         let deg: f32 = 360.0*turns;
@@ -101,8 +101,10 @@ impl Points {
         (cur_phi, max_phi, step_phi, cur_z, step_z, cur_rad, step_rad, verts)
     }
 
+    // https://github.com/blender/blender-addons/
+    // based on add_curve_spirals
     pub fn spiral_logarithmic(turns: f32, steps: f32, radius: f32, z_incr: f32, dif_radius: f32, force: f32, clockwise: bool) -> Self {
-        let (mut cur_phi, max_phi, step_phi, mut cur_z, step_z, _cur_rad, _step_rad, mut verts) = Self::spiral_properties(turns, steps, radius, z_incr, dif_radius, clockwise);
+        let (mut cur_phi, max_phi, step_phi, mut cur_z, step_z, _cur_rad, _step_rad, mut verts) = Self::archemedian_spiral_properties(turns, steps, radius, z_incr, dif_radius, clockwise);
         while cur_phi.abs() <= max_phi.abs() {
             cur_phi += step_phi;
             cur_z += step_z;
@@ -112,13 +114,45 @@ impl Points {
         Self { vec: verts }
     }
 
+    // https://github.com/blender/blender-addons/
+    // based on add_curve_spirals
     pub fn spiral_archemedian(turns: f32, steps: f32, radius: f32, z_incr: f32, dif_radius: f32, clockwise: bool) -> Self {
-        let (mut cur_phi, max_phi, step_phi, mut cur_z, step_z, mut cur_rad, step_rad, mut verts) = Self::spiral_properties(turns, steps, radius, z_incr, dif_radius, clockwise);
+        let (mut cur_phi, max_phi, step_phi, mut cur_z, step_z, mut cur_rad, step_rad, mut verts) = Self::archemedian_spiral_properties(turns, steps, radius, z_incr, dif_radius, clockwise);
         while cur_phi.abs() <= max_phi.abs() {
             cur_phi += step_phi;
             cur_z += step_z;
             cur_rad += step_rad;
             verts.push(Vector3::new(cur_rad*cur_phi.cos(), cur_rad*cur_phi.sin(), cur_z));
+        }
+        Self { vec: verts }
+    }
+
+    // https://github.com/blender/blender-addons/
+    // based on add_curve_spirals
+    pub fn spiral_spherical(turns: f32, mut steps: f32, radius: f32,  clockwise: bool) -> Self {
+        steps *= turns;
+        let mut max_phi: f32 = 2.0*PI*turns;
+        let mut step_phi: f32 = max_phi / ((2.0*PI) / steps);
+        if !clockwise {
+            max_phi *= -1.0;
+            step_phi *= -1.0;
+        }
+
+        let step_theta: f32 = PI / (steps-1.0);
+        let mut verts: Vec<Vector3> = Vec::new();
+        verts.push(Vector3::new(0.0, 0.0, -radius));
+
+        let mut cur_phi: f32 = 0.0;
+        let mut cur_theta: f32 = -PI/2.0;
+
+        while cur_phi.abs() <= max_phi.abs() {
+            verts.push(Vector3::new(
+                    radius * cur_theta.cos() * cur_phi.cos(),
+                    radius * cur_theta.cos() * cur_phi.sin(),
+                    radius * cur_theta.sin())
+                );
+            cur_theta += step_theta;
+            cur_phi += step_phi;
         }
         Self { vec: verts }
     }
