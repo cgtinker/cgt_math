@@ -395,6 +395,7 @@ impl Vector3 {
     /// let b = Vector3::new(0.09314928, -0.18629856, 0.97806746);
     /// assert_eq!(a.normalize(), b);
     /// ```
+    /// TODO: Handle 0. Division
     pub fn normalize(&self) -> Self {
         self.clone() / self.length()
     }
