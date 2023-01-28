@@ -19,7 +19,7 @@ impl Quaternion {
     /// assert_eq!(a, b);
     /// ```
     pub const IDENTITY: Self = Self::new(0.0, 0.0, 0.0, 1.0);
-    pub const NAN: Self = Self { q: Vector4::NAN  }
+    pub const NAN: Self = Self::new(f32::NAN, f32::NAN, f32::NAN, f32::NAN);
 
     /// Create new quaternion.
     /// # Example
