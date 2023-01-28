@@ -221,11 +221,8 @@ impl Quaternion {
         }
     }
 
-    // TODO: implement
-    // https://github.com/dfelinto/blender/blob/master/source/blender/python/mathutils/mathutils_Vector.c
-    // https://github.com/dfelinto/blender/blob/master/source/blender/blenlib/intern/math_rotation.c
+    // Based on https://github.com/dfelinto/blender from_track_quat mathutil
     pub fn from_vec_to_track_quat(vec: Vector3, mut axis: u8, upflag: u8) -> Self {
-        println!("{}, {}", axis, upflag);
         const EPS: f32 = 1e-4f32;
         let mut nor: [f32; 3] = [0.0; 3];
         let mut tvec: [f32; 3] = vec.to_array();
@@ -251,33 +248,28 @@ impl Quaternion {
 
         // x-axis
         if axis == 0 {
-            println!("x");
             nor[0] = 0.0;
             nor[1] = -tvec[2];
             nor[2] = tvec[1];
 
             if (tvec[1].abs() + tvec[2].abs()) < EPS {
-                println!("<eps");
                 nor[1] = 1.0;
             }
             co = tvec[0];
         }
         // y-axis
         else if axis == 1 {
-            println!("y");
             nor[0] = tvec[2];
             nor[1] = 0.0;
             nor[2] = -tvec[0];
 
             if (tvec[0].abs() + tvec[2].abs()) < EPS {
-                println!("<eps");
                 nor[2] = 1.0;
             }
             co = tvec[1];
         }
         // z-axis
         else {
-            println!("z");
             nor[0] = -tvec[1];
             nor[1] = tvec[0];
             nor[2] = 0.0;
@@ -292,10 +284,8 @@ impl Quaternion {
 
         // saacos
         if co <= -1.0 {
-            println!("co <= -1");
             co = PI;
         } else if co >= 1.0 {
-            println!("co >= 1");
             co = 0.0;
         } else {
             co = co.acos();
@@ -305,10 +295,7 @@ impl Quaternion {
         let q = Quaternion::from_axis_angle(Vector3::from_array(nor).normalize(), co);
         if axis != upflag {
             let mut angle: f32;
-            println!("{:?}", q);
             let mat = q.quat_to_rotation_matrix();
-            println!("{:?}", mat);
-            // let mat = RotationMatrix::from_quaternion(q);
             let fp = mat.z;
 
             if axis == 0 {
@@ -332,12 +319,7 @@ impl Quaternion {
             }
 
             let si = angle.sin() / len;
-            
-            println!("\nsi {}, {}", si, angle.cos());
-            println!("{:?}", tvec);
             let mut q2 = Quaternion::new(tvec[0] * si, tvec[1] * si, tvec[2] * si, angle.cos());
-            println!("q1 {:?}", q);
-            println!("q2 {:?}", q2);
             q2 *= q;
             return q2
         }
@@ -721,16 +703,16 @@ impl Mul<Quaternion> for Quaternion {
 }
 
 // Quat mul
+/// Based on https://github.com/blender/blender/ math_rotation
 impl MulAssign for Quaternion {
     fn mul_assign(&mut self, other: Self) {
         let a = self.q;
         let b = other.q;
-        // this seems to be correct
         self.q.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
         self.q.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
         self.q.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
         self.q.z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
-        // that seems to be blenders mathutils quat mul..
+        // following seems to be blenders mathutils quat multiplication (full prod)
         // let w = a[1] * b[1] - a[2] * b[2] - a[3] * b[3] - a[0] * b[0];
         // let x = a[1] * b[2] + a[2] * b[1] + a[3] * b[0] - a[0] * b[3];
         // let y = a[1] * b[3] + a[3] * b[1] + a[0] * b[2] - a[2] * b[0];
