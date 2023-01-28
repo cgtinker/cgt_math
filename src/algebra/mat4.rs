@@ -62,7 +62,8 @@ impl Mat4x4 {
             self.w.to_array(),
         ]
     }
-    
+
+    // TODO: move to quat
     #[inline]
     fn quat_to_axes(rotation: Quaternion) -> (Vector4, Vector4, Vector4) {
         let arr = rotation.to_array();
@@ -103,6 +104,15 @@ impl Mat4x4 {
     pub fn from_quat(rotation: Quaternion) -> Self {
         let (x_axis, y_axis, z_axis) = Self::quat_to_axes(rotation);
         Self::from_vecs(x_axis, y_axis, z_axis, Vector4::W)
+    }
+
+    #[inline]
+    pub fn to_mat3(&self) -> RotationMatrix {
+        RotationMatrix::from_vecs(
+            Vector3::new(self.x.x, self.x.y, self.x.z),
+            Vector3::new(self.y.x, self.y.y, self.y.z),
+            Vector3::new(self.z.x, self.z.y, self.z.z),
+        )
     }
 
     #[inline]
