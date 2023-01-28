@@ -7,6 +7,7 @@ pub struct Vector3 {
     pub z: f32,
 }
 
+
 impl Vector3 {
     pub const ZERO: Self = Self::new(0.0, 0.0, 0.0);
     pub const ONE: Self = Self::new(1.0, 1.0, 1.0);

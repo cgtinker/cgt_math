@@ -1,8 +1,9 @@
+use crate::RotationMatrix;
 use crate::Vector3;
 use crate::Vector4;
-use crate::RotationMatrix;
+use std::f32::consts::PI;
 
-use std::ops::{Add, AddAssign, Mul, MulAssign, Neg, Sub, SubAssign, Index};
+use std::ops::{Add, AddAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Quaternion {
@@ -28,9 +29,10 @@ impl Quaternion {
     /// let a = Quaternion::new(3.0, 2.0, 1.0, 5.0);
     /// ```
     pub const fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
-        Self { q: Vector4 { x, y, z, w } }
+        Self {
+            q: Vector4 { x, y, z, w },
+        }
     }
-
 
     /// Create new quaternion from vector.
     /// # Example
@@ -53,7 +55,9 @@ impl Quaternion {
     /// ```
     #[inline]
     pub const fn from_array(a: [f32; 4]) -> Self {
-        Self { q: Vector4::from_array(a) }
+        Self {
+            q: Vector4::from_array(a),
+        }
     }
 
     /// `[x, y, z, w]`
@@ -66,7 +70,7 @@ impl Quaternion {
     #[inline]
     pub const fn to_array(&self) -> [f32; 4] {
         self.q.to_array()
-   }
+    }
 
     // TODO:  might have to swite q&&x
     // https://www.euclideanspace.com/maths/algebra/vectors/angleBetween/index.htm
@@ -74,12 +78,26 @@ impl Quaternion {
         let d = v1.dot(v2);
         let axis = v1.cross(v2);
 
-        let qw = (v1.length_squared()*v2.length_squared()).sqrt() + d;
+        let qw = (v1.length_squared() * v2.length_squared()).sqrt() + d;
         if qw < 0.0001 {
-            let res = Self { q: Vector4 { x: 0.0, y: -v1.z, z: v1.y, w: v1.x } };
+            let res = Self {
+                q: Vector4 {
+                    x: 0.0,
+                    y: -v1.z,
+                    z: v1.y,
+                    w: v1.x,
+                },
+            };
             return res.normalize();
         }
-        let res = Self { q: Vector4 { x: qw, y: axis.x, z: axis.y, w: axis.z } };
+        let res = Self {
+            q: Vector4 {
+                x: qw,
+                y: axis.x,
+                z: axis.y,
+                w: axis.z,
+            },
+        };
         return res.normalize();
     }
 
@@ -110,10 +128,43 @@ impl Quaternion {
         Self::new(0.0, 0.0, s, c)
     }
 
+    /// Based on https://github.com/blender/blender/ math_rotation
+    pub fn quat_to_rotation_matrix(&self) -> RotationMatrix {
+        const SQRT2: f64 = 1.41421356237309504880;
+        let q0: f64 = SQRT2 * self.q.w as f64;
+        let q1: f64 = SQRT2 * self.q.x as f64;
+        let q2: f64 = SQRT2 * self.q.y as f64;
+        let q3: f64 = SQRT2 * self.q.z as f64;
+
+        let qda: f64 = q0 * q1;
+        let qdb: f64 = q0 * q2;
+        let qdc: f64 = q0 * q3;
+        let qaa: f64 = q1 * q1;
+        let qab: f64 = q1 * q2;
+        let qac: f64 = q1 * q3;
+        let qbb: f64 = q2 * q2;
+        let qbc: f64 = q2 * q3;
+        let qcc: f64 = q3 * q3;
+
+        let m00: f32 = (1.0 - qbb - qcc) as f32;
+        let m01: f32 = (qdc + qab) as f32;
+        let m02: f32 = (-qdb + qac) as f32;
+
+        let m10: f32 = (-qdc + qab) as f32;
+        let m11: f32 = (1.0 - qaa - qcc) as f32;
+        let m12: f32 = (qda + qbc) as f32;
+
+        let m20: f32 = (qdb + qac) as f32;
+        let m21: f32 = (-qda + qbc) as f32;
+        let m22: f32 = (1.0 - qaa - qbb) as f32;
+
+        RotationMatrix::new(m00, m01, m02, m10, m11, m12, m20, m21, m22)
+    }
+
     /// From the columns of a 3x3 rotation matrix.
+    /// Based on https://github.com/microsoft/DirectXMath `XM$quaternionRotationMatrix`
     #[inline]
     pub fn from_rotation_axes(x: Vector3, y: Vector3, z: Vector3) -> Self {
-        // Based on https://github.com/microsoft/DirectXMath `XM$quaternionRotationMatrix`
         let (m00, m01, m02) = (x.x, x.y, x.z);
         let (m10, m11, m12) = (y.x, y.y, y.z);
         let (m20, m21, m22) = (z.x, z.y, z.z);
@@ -170,6 +221,129 @@ impl Quaternion {
         }
     }
 
+    // TODO: implement
+    // https://github.com/dfelinto/blender/blob/master/source/blender/python/mathutils/mathutils_Vector.c
+    // https://github.com/dfelinto/blender/blob/master/source/blender/blenlib/intern/math_rotation.c
+    pub fn from_vec_to_track_quat(vec: Vector3, mut axis: u8, upflag: u8) -> Self {
+        println!("{}, {}", axis, upflag);
+        const EPS: f32 = 1e-4f32;
+        let mut nor: [f32; 3] = [0.0; 3];
+        let mut tvec: [f32; 3] = vec.to_array();
+        let mut co: f32;
+
+        assert!(axis != upflag);
+        assert!(axis <= 5);
+        assert!(upflag <= 2);
+
+        let len = vec.length();
+        if len == 0.0f32 {
+            return Quaternion::IDENTITY;
+        }
+
+        // rotate to axis
+        if axis > 2 {
+            axis -= 3;
+        } else {
+            tvec[0] *= -1.0;
+            tvec[1] *= -1.0;
+            tvec[2] *= -1.0;
+        }
+
+        // x-axis
+        if axis == 0 {
+            println!("x");
+            nor[0] = 0.0;
+            nor[1] = -tvec[2];
+            nor[2] = tvec[1];
+
+            if (tvec[1].abs() + tvec[2].abs()) < EPS {
+                println!("<eps");
+                nor[1] = 1.0;
+            }
+            co = tvec[0];
+        }
+        // y-axis
+        else if axis == 1 {
+            println!("y");
+            nor[0] = tvec[2];
+            nor[1] = 0.0;
+            nor[2] = -tvec[0];
+
+            if (tvec[0].abs() + tvec[2].abs()) < EPS {
+                println!("<eps");
+                nor[2] = 1.0;
+            }
+            co = tvec[1];
+        }
+        // z-axis
+        else {
+            println!("z");
+            nor[0] = -tvec[1];
+            nor[1] = tvec[0];
+            nor[2] = 0.0;
+
+            if (tvec[0].abs() + tvec[1].abs()) < EPS {
+                println!("<eps");
+                nor[0] = 1.0;
+            }
+            co = tvec[2];
+        }
+        co /= len;
+
+        // saacos
+        if co <= -1.0 {
+            println!("co <= -1");
+            co = PI;
+        } else if co >= 1.0 {
+            println!("co >= 1");
+            co = 0.0;
+        } else {
+            co = co.acos();
+        }
+
+        // q from angle
+        let q = Quaternion::from_axis_angle(Vector3::from_array(nor).normalize(), co);
+        if axis != upflag {
+            let mut angle: f32;
+            println!("{:?}", q);
+            let mat = q.quat_to_rotation_matrix();
+            println!("{:?}", mat);
+            // let mat = RotationMatrix::from_quaternion(q);
+            let fp = mat.z;
+
+            if axis == 0 {
+                if upflag == 1 {
+                    angle = 0.5 * fp.z.atan2(fp.y);
+                } else {
+                    angle = -0.5 * fp.y.atan2(fp.z);
+                }
+            } else if axis == 1 {
+                if upflag == 0 {
+                    angle = -0.5 * fp.z.atan2(fp.x);
+                } else {
+                    angle = 0.5 * fp.x.atan2(fp.z);
+                }
+            } else {
+                if upflag == 0 {
+                    angle = 0.5 * -fp.y.atan2(-fp.x);
+                } else {
+                    angle = -0.5 * -fp.x.atan2(-fp.y);
+                }
+            }
+
+            let si = angle.sin() / len;
+            
+            println!("\nsi {}, {}", si, angle.cos());
+            println!("{:?}", tvec);
+            let mut q2 = Quaternion::new(tvec[0] * si, tvec[1] * si, tvec[2] * si, angle.cos());
+            println!("q1 {:?}", q);
+            println!("q2 {:?}", q2);
+            q2 *= q;
+            return q2
+        }
+        return q;
+    }
+
     /// Creates a quaternion from a 3x3 rotation matrix.
     #[inline]
     pub fn from_rotation_matrix(mat: &RotationMatrix) -> Self {
@@ -213,7 +387,9 @@ impl Quaternion {
     /// assert_eq!(a.reset(0.0, 0.0, 0.0, 1.0), Quaternion::IDENTITY);
     /// ```
     pub fn reset(&self, x: f32, y: f32, z: f32, w: f32) -> Self {
-        Self { q: self.q.reset(x,y,z,w) }
+        Self {
+            q: self.q.reset(x, y, z, w),
+        }
     }
 
     /// Returns vector with absolute values.
@@ -273,7 +449,9 @@ impl Quaternion {
     /// assert_eq!(a.clamp(-1.0, 1.0), b);
     /// ```
     pub fn clamp(&self, min: f32, max: f32) -> Self {
-        Self { q: self.q.clamp(min, max) }
+        Self {
+            q: self.q.clamp(min, max),
+        }
     }
 
     /// Returns vector with powed values.
@@ -285,7 +463,9 @@ impl Quaternion {
     /// assert_eq!(a.powf(2.0), b);
     /// ```
     pub fn powf(&self, var: f32) -> Self {
-        Self { q: self.q.powf(var) }
+        Self {
+            q: self.q.powf(var),
+        }
     }
 
     /// Returns vector with powed values.
@@ -311,7 +491,9 @@ impl Quaternion {
     /// assert_eq!(a.min(&b), c);
     /// ```
     pub fn min(&self, other: &Self) -> Self {
-        Self { q: self.q.min(&other.q) }
+        Self {
+            q: self.q.min(&other.q),
+        }
     }
 
     /// Returns vector with max values.
@@ -324,7 +506,9 @@ impl Quaternion {
     /// assert_eq!(a.max(&b), c);
     /// ```
     pub fn max(&self, other: &Self) -> Self {
-        Self { q: self.q.max(&other.q) }
+        Self {
+            q: self.q.max(&other.q),
+        }
     }
 
     /// Returns vector with turncated values.
@@ -440,7 +624,9 @@ impl Quaternion {
     /// assert_eq!(a.normalize(), b);
     /// ```
     pub fn normalize(&self) -> Self {
-        Self { q: self.q.normalize() }
+        Self {
+            q: self.q.normalize(),
+        }
     }
 
     /// Returns the inverse of this vector.
@@ -451,11 +637,20 @@ impl Quaternion {
     /// Quaternion::new(0.023809524, 1.0, 0.33333334, 1.0);
     /// ```
     pub fn inverse(&self) -> Self {
-        Self { q: self.q.inverse() }
+        Self {
+            q: self.q.inverse(),
+        }
     }
 
     pub fn conjugate(&self) -> Self {
-        Self { q: Vector4 { x: -self.q.x, y: -self.q.y, z: -self.q.z, w: self.q.w } }
+        Self {
+            q: Vector4 {
+                x: -self.q.x,
+                y: -self.q.y,
+                z: -self.q.z,
+                w: self.q.w,
+            },
+        }
     }
 
     /// Performs a linear interpolation between `self` and `rhs` based on the value `s`.
@@ -466,33 +661,43 @@ impl Quaternion {
     #[doc(alias = "mix")]
     #[inline]
     pub fn lerp(self, rhs: Self, s: f32) -> Self {
-        Self { q: self.q.lerp(rhs.q, s) }
+        Self {
+            q: self.q.lerp(rhs.q, s),
+        }
     }
 }
 
 impl Add for Quaternion {
     type Output = Quaternion;
     fn add(self, other: Self) -> Self::Output {
-        Self { q: Vector4::add(self.q, other.q) }
+        Self {
+            q: Vector4::add(self.q, other.q),
+        }
     }
 }
 
 impl AddAssign for Quaternion {
     fn add_assign(&mut self, other: Self) {
-        *self = Self { q: self.q + other.q }
+        *self = Self {
+            q: self.q + other.q,
+        }
     }
 }
 
 impl Sub for Quaternion {
     type Output = Quaternion;
     fn sub(self, other: Self) -> Self::Output {
-        Self { q: Vector4::sub(self.q, other.q) }
+        Self {
+            q: Vector4::sub(self.q, other.q),
+        }
     }
 }
 
 impl SubAssign for Quaternion {
     fn sub_assign(&mut self, other: Self) {
-        *self = Self { q: self.q - other.q }
+        *self = Self {
+            q: self.q - other.q,
+        }
     }
 }
 
@@ -500,14 +705,18 @@ impl SubAssign for Quaternion {
 impl Mul<f32> for Quaternion {
     type Output = Quaternion;
     fn mul(self, val: f32) -> Self::Output {
-        Self { q: Vector4::mul(self.q, val) }
+        Self {
+            q: Vector4::mul(self.q, val),
+        }
     }
 }
 
 impl Mul<Quaternion> for Quaternion {
     type Output = Quaternion;
     fn mul(self, other: Self) -> Self::Output {
-        Self { q: Vector4::mul(self.q, other.q) }
+        Self {
+            q: Vector4::mul(self.q, other.q),
+        }
     }
 }
 
@@ -516,20 +725,25 @@ impl MulAssign for Quaternion {
     fn mul_assign(&mut self, other: Self) {
         let a = self.q;
         let b = other.q;
-
-        let w = a[1] * b[1] - a[2] * b[2] - a[3] * b[3] - a[0] * b[0];
-        let x = a[1] * b[2] + a[2] * b[1] + a[3] * b[0] - a[0] * b[3];
-        let y = a[1] * b[3] + a[3] * b[1] + a[0] * b[2] - a[2] * b[0];
-        let z = a[1] * b[0] + a[0] * b[1] + a[2] * b[3] - a[3] * b[2];
-        let q = Self { q: Vector4 { x: x, y: y, z: z, w: w } };
-        *self = q
+        // this seems to be correct
+        self.q.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+        self.q.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
+        self.q.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
+        self.q.z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
+        // that seems to be blenders mathutils quat mul..
+        // let w = a[1] * b[1] - a[2] * b[2] - a[3] * b[3] - a[0] * b[0];
+        // let x = a[1] * b[2] + a[2] * b[1] + a[3] * b[0] - a[0] * b[3];
+        // let y = a[1] * b[3] + a[3] * b[1] + a[0] * b[2] - a[2] * b[0];
+        // let z = a[1] * b[0] + a[0] * b[1] + a[2] * b[3] - a[3] * b[2];
     }
 }
 
 impl Neg for Quaternion {
     type Output = Quaternion;
     fn neg(self) -> Self::Output {
-        Self { q: Vector4::neg(self.q) }
+        Self {
+            q: Vector4::neg(self.q),
+        }
     }
 }
 
@@ -538,7 +752,6 @@ impl PartialEq for Quaternion {
         self.q == other.q
     }
 }
-
 
 impl Index<usize> for Quaternion {
     type Output = f32;
