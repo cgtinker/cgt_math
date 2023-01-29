@@ -101,7 +101,7 @@ impl Face {
     /// assert_eq!(proj, Vector3::new(0.0, 1.0, 0.0));
     /// ```
     pub fn project(&self, vec: Vector3) -> Vector3 {
-        vec.project(self.normal())
+        vec.orthogonal_projection(self.normal())
     }
 
     /// Reflects input vector from face.

@@ -431,6 +431,12 @@ impl Vector3 {
         other * (self.dot(other) / other.length_squared())
     }
 
+    /// Returns projection of vector onto plane normal by substracting
+    /// the component of u which is orthogonal to the plane from u
+    pub fn orthogonal_projection(&self, normal: Self) -> Self {
+        self - normal * (self.dot(normal) / normal.length_squared())
+    }
+
     /// Returns vector reflected from a plane defined by given normal.
     /// # Example:
     /// ```
