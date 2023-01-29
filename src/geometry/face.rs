@@ -98,7 +98,7 @@ impl Face {
     /// let face = Face::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
     /// let vec = Vector3::new(1.0, 1.0, 0.0);
     /// let proj = face.project(vec);
-    /// assert_eq!(proj, Vector3::new(0.0, 1.0, 0.0));
+    /// assert_eq!(proj, Vector3::new(1.0, 0.0, 0.0));
     /// ```
     pub fn project(&self, vec: Vector3) -> Vector3 {
         vec.orthogonal_projection(self.normal())

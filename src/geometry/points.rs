@@ -48,6 +48,12 @@ impl Points {
 
     /// Get closest by approx distance to point.
     pub fn closest_to(&self, point: Vector3) -> Vector3 {
+        self.vec[self.closest_to_idx(point)]
+    }
+
+
+    /// Get closest idx by approx distance to point.
+    pub fn closest_to_idx(&self, point: Vector3) -> usize {
         let mut idx: usize = 0;
         let mut min: f32 = f32::MAX;
         for i in 0..self.vec.len() {
@@ -57,7 +63,7 @@ impl Points {
                 idx = i;
             }
         }
-        return self.vec[idx]
+        idx
     }
 
     pub fn line_from_uv(from: Vector3, to: Vector3, n: usize) -> Self {
