@@ -1,6 +1,7 @@
 use crate::Vector3;
-use::std::f32::consts::PI;
-use::std::convert::TryInto;
+use std::f32::consts::PI;
+use std::convert::TryInto;
+use std::ops::{Index};
 
 #[derive(Clone, Debug)]
 pub struct Points {
@@ -216,5 +217,12 @@ impl Points {
             vec.push(point);
         }
         Self { vec: vec }
+    }
+}
+
+impl Index<usize> for Points {
+    type Output = Vector3;
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.vec[index]
     }
 }
