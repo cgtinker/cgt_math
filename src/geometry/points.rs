@@ -54,11 +54,11 @@ impl Points {
 
 
     /// Get closest idx by approx distance to point.
-    pub fn closest_to_idx(&self, point: Vector3) -> usize {
+    pub fn closest_to_idx(&self, tar: Vector3) -> usize {
         let mut idx: usize = 0;
         let mut min: f32 = f32::MAX;
         for i in 0..self.vec.len() {
-            let d = (point - self.vec[i]).sum().powf(2.0);
+            let d = (self.vec[i]-tar).powf(2.0).sum();
             if d < min {
                 min = d;
                 idx = i;
@@ -202,12 +202,13 @@ impl Points {
     /// U & V have to be normalized!
     /// TODO: Panic if not normalized
     pub fn circle_from_uv(center: Vector3, u: Vector3, v: Vector3, radius: f32, n: usize) -> Self {
-        let thetha = Self::linspace(0.0, 2.0*PI, n+1);
+        let theta = Self::linspace(0.0, 2.0*PI, n+1);
+        println!("{:?}", theta);
         let mut vec = Vec::with_capacity(n);
 
         for i in 0..n {
-            let cos_t = thetha[i].cos();
-            let sin_t = thetha[i].sin();
+            let cos_t = theta[i].cos();
+            let sin_t = theta[i].sin();
 
             let point = Vector3::new(
                 center.x + radius * u.x * cos_t + radius * v.x * sin_t,
