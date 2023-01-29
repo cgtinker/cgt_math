@@ -1,7 +1,7 @@
 use crate::Vector3;
 use std::f32::consts::PI;
 use std::convert::TryInto;
-use std::ops::{Index};
+use std::ops::{Deref};
 
 #[derive(Clone, Debug)]
 pub struct Points {
@@ -220,9 +220,16 @@ impl Points {
     }
 }
 
-impl Index<usize> for Points {
-    type Output = Vector3;
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.vec[index]
+//impl Index<usize> for Points {
+//    type Output = Vector3;
+//    fn index(&self, index: usize) -> &Self::Output {
+//        &self.vec[index]
+//    }
+//}
+
+impl Deref for Points {
+    type Target = Vec<Vector3>;
+    fn deref(&self) -> &Self::Target {
+        &self.vec
     }
 }
