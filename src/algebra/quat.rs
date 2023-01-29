@@ -3,7 +3,7 @@ use crate::Vector3;
 use crate::Vector4;
 use std::f32::consts::PI;
 
-use std::ops::{Add, AddAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign, Div};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Quaternion {
@@ -624,6 +624,15 @@ impl Quaternion {
         }
     }
 
+    pub fn invert(&self) -> Self {
+        let f: f32 = self.dot(*self);
+        if f == 0.0f32 {
+            return *self;
+        }
+        self.conjugate() * 1.0 / f
+    }
+
+
     pub fn conjugate(&self) -> Self {
         Self {
             q: Vector4 {
@@ -652,34 +661,15 @@ impl Quaternion {
 impl Add for Quaternion {
     type Output = Quaternion;
     fn add(self, other: Self) -> Self::Output {
-        Self {
-            q: Vector4::add(self.q, other.q),
-        }
-    }
-}
-
-impl AddAssign for Quaternion {
-    fn add_assign(&mut self, other: Self) {
-        *self = Self {
-            q: self.q + other.q,
-        }
+        self.mul(other)
     }
 }
 
 impl Sub for Quaternion {
     type Output = Quaternion;
     fn sub(self, other: Self) -> Self::Output {
-        Self {
-            q: Vector4::sub(self.q, other.q),
-        }
-    }
-}
-
-impl SubAssign for Quaternion {
-    fn sub_assign(&mut self, other: Self) {
-        *self = Self {
-            q: self.q - other.q,
-        }
+        let rhs = Quaternion::new(other.q.x, other.q.y, other.q.z, -other.q.w);
+        self * rhs
     }
 }
 
@@ -693,12 +683,25 @@ impl Mul<f32> for Quaternion {
     }
 }
 
+impl Div<f32> for Quaternion {
+    type Output = Quaternion;
+    fn div(self, val: f32) -> Self::Output {
+        Self {
+            q: Vector4::div(self.q, val),
+        }
+    }
+}
+
 impl Mul<Quaternion> for Quaternion {
     type Output = Quaternion;
     fn mul(self, other: Self) -> Self::Output {
-        Self {
-            q: Vector4::mul(self.q, other.q),
-        }
+        let a = &self.q;
+        let b = &other.q;
+        let w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+        let x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
+        let y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
+        let z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
+        Self { q: Vector4 { x: x, y: y, z: z, w: w } }
     }
 }
 
