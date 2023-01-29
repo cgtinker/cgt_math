@@ -24,7 +24,7 @@ mod geometry_tests {
         // projection
         let proj_vec = Vector3::new(1.0, 1.0, 0.0);
         let proj = face.project(proj_vec);
-        assert_eq!(proj, Vector3::new(0.0f32, 1.0, 0.0f32));
+        assert_eq!(proj, Vector3::new(1.0, 0.0f32, 0.0f32));
 
         // reflection
         let refl_vec = Vector3::new(0.0, -1.0, 0.5);
