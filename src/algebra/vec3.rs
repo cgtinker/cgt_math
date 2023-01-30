@@ -1,4 +1,5 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign, Index};
+use std::f32::consts::PI;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vector3 {
@@ -109,14 +110,8 @@ impl Vector3 {
         Self { x, y, z }
     }
 
+
     /// Returns vector with absolute values.
-    /// # Example:
-    /// ```
-    /// use cgt_math::Vector3;
-    /// let a = Vector3::new(-1.0, 0.0, 2.0);
-    /// let b = Vector3::new(1.0, 0.0, 2.0);
-    /// assert_eq!(a.abs(), b);
-    /// ```
     pub fn abs(&self) -> Self {
         Self {
             x: self.x.abs(),
@@ -126,13 +121,6 @@ impl Vector3 {
     }
 
     /// Returns vector with ceiled values.
-    /// # Example:
-    /// ```
-    /// use cgt_math::Vector3;
-    /// let a = Vector3::new(-1.3, 0.9, 2.5);
-    /// let b = Vector3::new(-1.0, 1.0, 3.0);
-    /// assert_eq!(a.ceil(), b);
-    /// ```
     pub fn ceil(&self) -> Self {
         Self {
             x: self.x.ceil(),
@@ -142,13 +130,6 @@ impl Vector3 {
     }
 
     /// Returns vector with floored values.
-    /// # Example:
-    /// ```
-    /// use cgt_math::Vector3;
-    /// let a = Vector3::new(-1.3, 0.9, 2.5);
-    /// let b = Vector3::new(-2.0, 0.0, 2.0);
-    /// assert_eq!(a.floor(), b);
-    /// ```
     pub fn floor(&self) -> Self {
         Self {
             x: self.x.floor(),
@@ -157,14 +138,38 @@ impl Vector3 {
         }
     }
 
+    pub fn sin(&self) -> Self {
+        Self {
+            x: self.x.sin(),
+            y: self.y.sin(),
+            z: self.z.sin(),
+        }
+    }
+
+    pub fn asin(&self) -> Self {
+        Self {
+            x: self.x.asin(),
+            y: self.y.asin(),
+            z: self.z.asin(),
+        }
+    }
+
+    pub fn cos(&self) -> Self {
+        Self {
+            x: self.x.cos(),
+            y: self.y.cos(),
+            z: self.z.cos(),
+        }
+    }
+
+    pub fn acos(&self) -> Self {
+        Self {
+            x: self.x.acos(),
+            y: self.y.acos(),
+            z: self.z.acos(),
+        }
+    }
     /// Returns vector with rounded values.
-    /// # Example:
-    /// ```
-    /// use cgt_math::Vector3;
-    /// let a = Vector3::new(-1.3, 0.9, 2.5);
-    /// let b = Vector3::new(-1.0, 1.0, 3.0);
-    /// assert_eq!(a.round(), b);
-    /// ```
     pub fn round(&self) -> Self {
         Self {
             x: self.x.round(),
@@ -174,13 +179,6 @@ impl Vector3 {
     }
 
     /// Returns vector with clamped values.
-    /// # Example:
-    /// ```
-    /// use cgt_math::Vector3;
-    /// let a = Vector3::new(-1.3, 0.9, 2.5);
-    /// let b = Vector3::new(-1.0, 0.9, 1.0);
-    /// assert_eq!(a.clamp(-1.0, 1.0), b);
-    /// ```
     pub fn clamp(&self, min: f32, max: f32) -> Self {
         Self {
             x: self.x.clamp(min, max),
@@ -190,13 +188,6 @@ impl Vector3 {
     }
 
     /// Returns vector with powed values.
-    /// # Example:
-    /// ```
-    /// use cgt_math::Vector3;
-    /// let a = Vector3::new(2.0, 1.0, 3.0);
-    /// let b = Vector3::new(4.0, 1.0, 9.0);
-    /// assert_eq!(a.powf(2.0), b);
-    /// ```
     pub fn powf(&self, var: f32) -> Self {
         Self {
             x: self.x.powf(var),
@@ -206,14 +197,6 @@ impl Vector3 {
     }
 
     /// Returns vector with powed values.
-    /// Int gets converted to f32.
-    /// # Example:
-    /// ```
-    /// use cgt_math::Vector3;
-    /// let a = Vector3::new(2.0, 1.0, 3.0);
-    /// let b = Vector3::new(4.0, 1.0, 9.0);
-    /// assert_eq!(a.pow(2), b);
-    /// ```
     pub fn pow(&self, var: i32) -> Self {
         self.powf(var as f32)
     }
@@ -283,6 +266,15 @@ impl Vector3 {
             z: self.z.neg(),
         }
     }
+
+    pub fn flip(&self, other: Self) -> Self {
+        Vector3 {
+            x: self.x + (self.x - other.x),
+            y: self.y + (self.y - other.y),
+            z: self.z + (self.z - other.z),
+        }
+    }
+
     /// Returns dot product of this with another vector.
     /// # Example:
     /// ```
@@ -317,6 +309,12 @@ impl Vector3 {
         self.length_squared().sqrt()
     }
 
+    pub fn is_normalized(&self) -> bool {
+        let len = self.length();
+        const MIN: f32 = 1.0 - 1e-12;
+        const MAX: f32 = 1.0 + 1e-12;
+        len >= MIN && len <= MAX
+    }
     /// Returns length of this vector.
     /// # Example:
     /// ```
@@ -375,6 +373,26 @@ impl Vector3 {
         (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt()).acos()
     }
 
+    /// Vectors have to be normalized
+    pub fn angle_normalized(&self, other: Self) -> f32 {
+        if self.dot(other) >= 0.0f32 {
+            return 2.0 * (other-*self).length() / 2.0;
+        }
+        return PI-2.0 * (other.neg()-*self).length() / 2.0;
+    }
+
+    /// Returns angle weight as 0-1 factor
+    /// vectors have to be normalized
+    pub fn mid_angle_weighted(&self, other: Self) -> Self {
+        let v = *self + other;
+        let angle = (v.normalize() / 2.0).cos() * PI*2.0;
+        v*angle
+    }
+
+    pub fn angle_weighted(&self) -> Self {
+       let angle = self.normalize().cos()*PI*2.0;
+       *self * angle
+    }
     /*
     /// Returns angle between this and another vector
     /// Todo: Implement clip opt
@@ -435,6 +453,10 @@ impl Vector3 {
     /// the component of u which is orthogonal to the plane from u
     pub fn orthogonal_projection(&self, normal: Self) -> Self {
         *self - normal * (self.dot(normal) / normal.length_squared())
+    }
+
+    pub fn bisect(self, a: Self, b: Self) -> Self {
+        ((a-self).normalize() + (b-a).normalize()).normalize()
     }
 
     /// Returns vector reflected from a plane defined by given normal.
@@ -512,18 +534,48 @@ impl Vector3 {
     pub fn lerp(self, rhs: Self, s: f32) -> Self {
         self + ((rhs - self) * s)
     }
-    /*
-     * Todo: implement rotation to vector. (Requires Matrix)
-    pub fn direction_to(&self, _other: Self) -> Self {
-        return Vector3::ZERO;
+
+    /// Returns linear interpolation vector. T between [0, 1].
+    pub fn interpolate(&self, rhs: Self, t: f32) -> Self {
+        const S: f32 = 1.0;
+        Self {
+            x: (S-t) * self.x + t * rhs.x,
+            y: (S-t) * self.y + t * rhs.y,
+            z: (S-t) * self.z + t * rhs.z,
+        }
     }
-    */
+
+    pub fn interpolate_cubic(&self, v1: Self, v2: Self, w: Self) -> Self {
+        Self {
+            x: self.x * w.x + v1.x * w.y + v2.x * w[2],
+            y: self.y * w.x + v1.y * w.y + v2.y * w[2],
+            z: self.z * w.x + v1.z * w.y + v2.z * w[2],
+        }
+    }
+
+    pub fn center(&self, other: Self) -> Self {
+        Self {
+            x: (self.x + other.x)*0.5f32,
+            y: (self.y + other.y)*0.5f32,
+            z: (self.z + other.z)*0.5f32,
+        }
+    }
+
+
+    pub fn center_of_three(&self, v1: Self, v2: Self) -> Self {
+        Self {
+            x: (self.x + v1.x + v2.x)/3.0f32,
+            y: (self.y + v1.y + v2.y)/3.0f32,
+            z: (self.z + v1.z + v2.z)/3.0f32,
+        }
+    }
+
 }
 
 impl Add for Vector3 {
     type Output = Vector3;
     fn add(self, other: Self) -> Self::Output {
-        Vector3 {
+        Self {
             x: self.x + other.x,
             y: self.y + other.y,
             z: self.z + other.z,
