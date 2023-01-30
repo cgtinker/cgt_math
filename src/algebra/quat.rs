@@ -3,7 +3,7 @@ use crate::Vector3;
 use crate::Vector4;
 use std::f32::consts::PI;
 
-use std::ops::{Add, AddAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign, Div};
+use std::ops::{Add, Index, Mul, MulAssign, Neg, Sub, Div};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Quaternion {
@@ -294,7 +294,7 @@ impl Quaternion {
         // q from angle
         let q = Quaternion::from_axis_angle(Vector3::from_array(nor).normalize(), co);
         if axis != upflag {
-            let mut angle: f32;
+            let angle: f32;
             let mat = q.quat_to_rotation_matrix();
             let fp = mat.z;
 
