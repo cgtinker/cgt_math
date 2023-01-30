@@ -146,6 +146,41 @@ impl Vector4 {
         }
     }
 
+    pub fn sin(&self) -> Self {
+        Self {
+            x: self.x.sin(),
+            y: self.y.sin(),
+            z: self.z.sin(),
+            w: self.w.sin(),
+        }
+    }
+
+    pub fn asin(&self) -> Self {
+        Self {
+            x: self.x.asin(),
+            y: self.y.asin(),
+            z: self.z.asin(),
+            w: self.w.asin(),
+        }
+    }
+
+    pub fn cos(&self) -> Self {
+        Self {
+            x: self.x.cos(),
+            y: self.y.cos(),
+            z: self.z.cos(),
+            w: self.w.cos(),
+        }
+    }
+
+    pub fn acos(&self) -> Self {
+        Self {
+            x: self.x.acos(),
+            y: self.y.acos(),
+            z: self.z.acos(),
+            w: self.w.acos(),
+        }
+    }
     /// Returns vector with rounded values.
     /// # Example:
     /// ```
@@ -263,6 +298,23 @@ impl Vector4 {
         }
     }
 
+    pub fn neg(&self) -> Self {
+        Self {
+            x: self.x.neg(),
+            y: self.y.neg(),
+            z: self.z.neg(),
+            w: self.w.neg(),
+        }
+    }
+
+    pub fn flip(&self, other: Self) -> Self {
+        Vector3 {
+            x: self.x + (self.x - other.x),
+            y: self.y + (self.y - other.y),
+            z: self.z + (self.z - other.z),
+            w: self.w + (self.w - other.w),
+        }
+    }
     /// Returns dot product of this with another vector.
     /// # Example:
     /// ```
@@ -355,6 +407,25 @@ impl Vector4 {
         (self.dot(other) / (self.length_squared() * other.length_squared()).sqrt()).acos()
     }
 
+    /// Vectors have to be normalized
+    pub fn angle_normalized(&self, other: Self) -> f32 {
+        if self.dot(other) >= 0.0f32 {
+            return 2.0 * (other-*self).length() / 2.0;
+        }
+        return PI-2.0 * (other.neg()-*self).length() / 2.0;
+    }
+
+    pub fn mid_angle_weighted(&self, other: Self) -> Self {
+        let v = *self + other;
+        let angle = (v.normalize() / 2.0).cos() * PI*2.0;
+        v*angle
+    }
+
+    pub fn angle_weighted(&self) -> Self {
+       let angle = self.normalize().cos()*PI*2.0;
+       *self * angle
+    }
+
     /// Returns normalized vector.
     /// # Example:
     /// ```
@@ -427,6 +498,53 @@ impl Vector4 {
         self + ((rhs - self) * s)
     }
 
+    /// Returns linear interpolation vector. T between [0, 1].
+    pub fn interpolate(&self, rhs: Self, t: f32) -> Self {
+        const S: f32 = 1.0;
+        Self {
+            x: (S-t) * self.x + t * rhs.x,
+            y: (S-t) * self.y + t * rhs.y,
+            z: (S-t) * self.z + t * rhs.z,
+            w: (S-t) * self.w + t * rhs.w,
+        }
+    }
+
+    pub fn interpolate_cubic2(&self, v1: Self, v2: Self, w: Vector3) -> Self {
+        Self {
+            x: self.x * w.x + v1.x * w.y + v2.x * w.z,
+            y: self.y * w.x + v1.y * w.y + v2.y * w.z,
+            z: self.z * w.x + v1.z * w.y + v2.z * w.z,
+            z: self.w * w.x + v1.w * w.y + v2.z * w.z,
+        }
+    }
+
+    pub fn interpolate_cubic3(&self, v1: Self, v2: Self, v3: Self, w: Self) -> Self {
+        Self {
+            x: self.x * w.x + v1.x * w.y + v2.x * w.z + v3.x  * w.w,
+            y: self.y * w.x + v1.y * w.y + v2.y * w.z + v3.y  * w.w,
+            z: self.z * w.x + v1.z * w.y + v2.z * w.z + v3.z  * w.w,
+            z: self.w * w.x + v1.w * w.y + v2.w * w.z + v3.w  * w.w,
+        }
+    }
+
+    pub fn center(&self, other: Self) -> Self {
+        Self {
+            x: (self.x + other.x)*0.5f32,
+            y: (self.y + other.y)*0.5f32,
+            z: (self.z + other.z)*0.5f32,
+            w: (self.w + other.w)*0.5f32,
+        }
+    }
+
+
+    pub fn center_of_three(&self, v1: Self, v2: Self) -> Self {
+        Self {
+            x: (self.x + v1.x + v2.x)/3.0f32,
+            y: (self.y + v1.y + v2.y)/3.0f32,
+            z: (self.z + v1.z + v2.z)/3.0f32,
+            w: (self.w + v1.w + v2.w)/3.0f32,
+        }
+    }
     pub fn merge_xy(&self, rhs: Self) -> Self {
         Self {
             x: self.x,

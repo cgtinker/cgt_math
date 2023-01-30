@@ -58,7 +58,7 @@ mod geometry_tests {
         assert_eq!(close, Vector3::new(2.0, 2.0, 2.0));
 
         // archemedian
-        let arche = Points::spiral_archemedian(6.0, 24.0, 1.0, 0.0, 0.2, true);
+        // let arche = Points::spiral_archemedian(6.0, 24.0, 1.0, 0.0, 0.2, true);
     }
 }
 

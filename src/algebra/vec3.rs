@@ -547,9 +547,9 @@ impl Vector3 {
 
     pub fn interpolate_cubic(&self, v1: Self, v2: Self, w: Self) -> Self {
         Self {
-            x: self.x * w.x + v1.x * w.y + v2.x * w[2],
-            y: self.y * w.x + v1.y * w.y + v2.y * w[2],
-            z: self.z * w.x + v1.z * w.y + v2.z * w[2],
+            x: self.x * w.x + v1.x * w.y + v2.x * w.z,
+            y: self.y * w.x + v1.y * w.y + v2.y * w.z,
+            z: self.z * w.x + v1.z * w.y + v2.z * w.z,
         }
     }
 
