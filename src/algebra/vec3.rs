@@ -1,5 +1,6 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign, Index};
 use std::f32::consts::PI;
+use crate::Vector4;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vector3 {
@@ -35,6 +36,28 @@ impl Vector3 {
     #[inline]
     pub const fn new(x: f32, y: f32, z: f32) -> Self {
         Self { x, y, z }
+    }
+
+    /// Creates an analytical gradient assuming a&b
+    /// carry both value of the sdf
+    /// https://iquilezles.org/articles/smin/
+    /// .x = f(p)
+    /// .y = ∂s(p)/∂x
+    /// .z = ∂s(p)/∂y
+    /// .w = ∂s(p)/∂z
+    /// .yzw = ∇s(p) with ∥∇s(p)∥<1 sadlyI
+    pub fn smin_polynomial(a: Vector4, b: Vector4, k: f32) -> Vector3 {
+        let h: f32 = (k-(a.x-b.x).abs()).max(0.0);
+        let m: f32 = 0.25*h*h/k;
+        let mut n: f32 = 0.50*  h/k;
+
+        let a3: Vector3 = Self { x: a.y, y: a.z, z: a.w };
+        let b3: Vector3 = Self { x: b.y, y: b.z, z: b.w };
+
+        if a.x < b.x {
+            n=1.0-n;
+        }
+        return a3.interpolate(b3,n)*((a.x).min(b.x)-m)
     }
 
     /// Creates a new vector from an array.
@@ -268,7 +291,7 @@ impl Vector3 {
     }
 
     pub fn flip(&self, other: Self) -> Self {
-        Vector3 {
+        Self {
             x: self.x + (self.x - other.x),
             y: self.y + (self.y - other.y),
             z: self.z + (self.z - other.z),
@@ -375,6 +398,8 @@ impl Vector3 {
 
     /// Vectors have to be normalized
     pub fn angle_normalized(&self, other: Self) -> f32 {
+        cgt_assert!(self.is_normalized());
+        cgt_assert!(other.is_normalized());
         if self.dot(other) >= 0.0f32 {
             return 2.0 * (other-*self).length() / 2.0;
         }
@@ -384,12 +409,15 @@ impl Vector3 {
     /// Returns angle weight as 0-1 factor
     /// vectors have to be normalized
     pub fn mid_angle_weighted(&self, other: Self) -> Self {
+        cgt_assert!(self.is_normalized());
+        cgt_assert!(other.is_normalized());
         let v = *self + other;
         let angle = (v.normalize() / 2.0).cos() * PI*2.0;
         v*angle
     }
 
     pub fn angle_weighted(&self) -> Self {
+       cgt_assert!(self.is_normalized());
        let angle = self.normalize().cos()*PI*2.0;
        *self * angle
     }

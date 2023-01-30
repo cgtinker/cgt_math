@@ -4,6 +4,8 @@ version = "0.0.1"
 edition = "2021"
 authors = ["Denys Hsu"]
 
+[features]
+default = ["std"]
 
 [lib]
 name="cgt_math"

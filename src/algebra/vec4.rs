@@ -1,4 +1,6 @@
+use crate::Vector3;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign, Index};
+use std::f32::consts::PI;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vector4 {
@@ -308,7 +310,7 @@ impl Vector4 {
     }
 
     pub fn flip(&self, other: Self) -> Self {
-        Vector3 {
+        Self {
             x: self.x + (self.x - other.x),
             y: self.y + (self.y - other.y),
             z: self.z + (self.z - other.z),
@@ -514,7 +516,7 @@ impl Vector4 {
             x: self.x * w.x + v1.x * w.y + v2.x * w.z,
             y: self.y * w.x + v1.y * w.y + v2.y * w.z,
             z: self.z * w.x + v1.z * w.y + v2.z * w.z,
-            z: self.w * w.x + v1.w * w.y + v2.z * w.z,
+            w: self.w * w.x + v1.w * w.y + v2.w * w.z,
         }
     }
 
@@ -523,7 +525,7 @@ impl Vector4 {
             x: self.x * w.x + v1.x * w.y + v2.x * w.z + v3.x  * w.w,
             y: self.y * w.x + v1.y * w.y + v2.y * w.z + v3.y  * w.w,
             z: self.z * w.x + v1.z * w.y + v2.z * w.z + v3.z  * w.w,
-            z: self.w * w.x + v1.w * w.y + v2.w * w.z + v3.w  * w.w,
+            w: self.w * w.x + v1.w * w.y + v2.w * w.z + v3.w  * w.w,
         }
     }
 

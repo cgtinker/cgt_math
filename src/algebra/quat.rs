@@ -727,7 +727,7 @@ impl Neg for Quaternion {
     type Output = Quaternion;
     fn neg(self) -> Self::Output {
         Self {
-            q: Vector4::neg(self.q),
+            q: Vector4::neg(&self.q),
         }
     }
 }

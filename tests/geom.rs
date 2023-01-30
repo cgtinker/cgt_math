@@ -1,14 +1,14 @@
 extern crate cgt_math;
-use cgt_math::{Vector3, Face, Points};
+use cgt_math::{Vector3, Plane, Points};
 
 #[cfg(test)]
 mod geometry_tests {
-    use crate::{Vector3, Face, Points};
+    use crate::{Vector3, Plane, Points};
 
     #[test]
     fn impl_test() {
         // normal
-        let face = Face::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
+        let face = Plane::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
         let norm = face.normal();
         assert_eq!(norm, Vector3::new(0.0, -1.0, 0.0));
 

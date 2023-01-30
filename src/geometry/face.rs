@@ -2,21 +2,21 @@ use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssi
 use crate::{Vector3};
 
 #[derive(Clone, Copy, Debug)]
-pub struct Face {
+pub struct Plane {
     v0: Vector3,
     v1: Vector3,
     v2: Vector3,
     connections: [u32; 3],
 }
 
-impl Face {
+impl Plane {
     /// Create a new face.
     /// # Example
     /// ```
-    /// use cgt_math::{Face, Vector3};
+    /// use cgt_math::{Plane, Vector3};
     /// let vertices = [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]];
     /// let connections = [0, 1, 2];
-    /// let face = Face::new(vertices, connections);
+    /// let face = Plane::new(vertices, connections);
     /// ```
     pub fn new(vertices: [[f32; 3]; 3], connections: [u32; 3]) -> Self {
         Self::from_vecs(
@@ -40,9 +40,9 @@ impl Face {
     /// Returns vertices and connections as array.
     /// # Example
     /// ```
-    /// use cgt_math::{Face, Vector3};
+    /// use cgt_math::{Plane, Vector3};
     /// let vertices = [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]];
-    /// let face = Face::new(vertices, [0, 1, 2]);
+    /// let face = Plane::new(vertices, [0, 1, 2]);
     /// let (verts, connections) = face.to_array();
     /// assert_eq!((vertices, [0, 1, 2]), (verts, connections))
     /// ```
@@ -68,8 +68,8 @@ impl Face {
     /// Returns normal from face.
     /// # Example
     /// ```
-    /// use cgt_math::{Face, Vector3};
-    /// let face = Face::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
+    /// use cgt_math::{Plane, Vector3};
+    /// let face = Plane::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
     /// let norm = face.normal();
     /// assert_eq!(norm, Vector3::new(0.0, -1.0, 0.0));
     /// ```
@@ -80,8 +80,8 @@ impl Face {
     /// Returns distance of point to face as signed int.
     /// # Example
     /// ```
-    /// use cgt_math::{Face, Vector3};
-    /// let face = Face::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
+    /// use cgt_math::{Plane, Vector3};
+    /// let face = Plane::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
     /// let p1 = Vector3::new(0.0, 1.0, 0.0);
     /// assert_eq!(face.distance(p1), -1.0);
     /// let p2 = Vector3::new(0.0, -1.0, 0.0);
@@ -94,8 +94,8 @@ impl Face {
     /// Projects input vector on face.
     /// # Example
     /// ```
-    /// use cgt_math::{Face, Vector3};
-    /// let face = Face::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
+    /// use cgt_math::{Plane, Vector3};
+    /// let face = Plane::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
     /// let vec = Vector3::new(1.0, 1.0, 0.0);
     /// let proj = face.project(vec);
     /// assert_eq!(proj, Vector3::new(1.0, 0.0, 0.0));
@@ -107,8 +107,8 @@ impl Face {
     /// Reflects input vector from face.
     /// # Example
     /// ```
-    /// use cgt_math::{Face, Vector3};
-    /// let face = Face::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
+    /// use cgt_math::{Plane, Vector3};
+    /// let face = Plane::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
     /// let vec = Vector3::new(0.0, -1.0, 1.0);
     /// let proj = face.reflect(vec);
     /// assert_eq!(proj, Vector3::new(0.0, 1.0, 1.0));
@@ -122,8 +122,8 @@ impl Face {
     // /// Slides input vector on face normal.
     // /// # Example
     // /// ```
-    // /// use cgt_math::{Face, Vector3};
-    // /// let face = Face::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
+    // /// use cgt_math::{Plane, Vector3};
+    // /// let face = Plane::new([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]], [0, 1, 2]);
     // /// let vec = Vector3::new(0.0, -1.0, 0.5);
     // /// let proj = face.slide(vec);
     // /// assert_eq!(proj, Vector3::new(0.0, 0.0, 0.5));
@@ -134,8 +134,8 @@ impl Face {
 }
 
 
-impl Add<Vector3> for Face {
-    type Output = Face;
+impl Add<Vector3> for Plane {
+    type Output = Plane;
     fn add(self, other: Vector3) -> Self::Output {
         Self {
             v0: self.v0 + other,
@@ -146,7 +146,7 @@ impl Add<Vector3> for Face {
     }
 }
 
-impl AddAssign<Vector3> for Face {
+impl AddAssign<Vector3> for Plane {
     fn add_assign(&mut self, other: Vector3) {
         *self = Self {
             v0: self.v0 + other,
@@ -157,8 +157,8 @@ impl AddAssign<Vector3> for Face {
     }
 }
 
-impl Sub<Vector3> for Face {
-    type Output = Face;
+impl Sub<Vector3> for Plane {
+    type Output = Plane;
     fn sub(self, other: Vector3) -> Self::Output {
         Self {
             v0: self.v0 - other,
@@ -169,7 +169,7 @@ impl Sub<Vector3> for Face {
     }
 }
 
-impl SubAssign<Vector3> for Face {
+impl SubAssign<Vector3> for Plane {
     fn sub_assign(&mut self, other: Vector3) {
         *self = Self {
             v0: self.v0 - other,
@@ -180,8 +180,8 @@ impl SubAssign<Vector3> for Face {
     }
 }
 
-impl Mul<f32> for Face {
-    type Output = Face;
+impl Mul<f32> for Plane {
+    type Output = Plane;
     fn mul(self, val: f32) -> Self::Output {
         Self {
             v0: self.v0 * val,
@@ -192,8 +192,8 @@ impl Mul<f32> for Face {
     }
 }
 
-impl Mul<Vector3> for Face {
-    type Output = Face;
+impl Mul<Vector3> for Plane {
+    type Output = Plane;
     fn mul(self, other: Vector3) -> Self::Output {
         Self {
             v0: self.v0 * other,
@@ -204,7 +204,7 @@ impl Mul<Vector3> for Face {
     }
 }
 
-impl MulAssign<Vector3> for Face {
+impl MulAssign<Vector3> for Plane {
     fn mul_assign(&mut self, other: Vector3) {
         *self = Self {
             v0: self.v0 * other,
@@ -215,7 +215,7 @@ impl MulAssign<Vector3> for Face {
     }
 }
 
-impl Div<f32> for Face {
+impl Div<f32> for Plane {
     type Output = Self;
     fn div(self, val: f32) -> Self::Output {
         Self {
@@ -227,7 +227,7 @@ impl Div<f32> for Face {
     }
 }
 
-impl Div<Vector3> for Face {
+impl Div<Vector3> for Plane {
     type Output = Self;
     fn div(self, other: Vector3) -> Self::Output {
         Self {
@@ -239,7 +239,7 @@ impl Div<Vector3> for Face {
     }
 }
 
-impl DivAssign<Vector3> for Face {
+impl DivAssign<Vector3> for Plane {
     fn div_assign(&mut self, other: Vector3) {
         *self = Self {
             v0: self.v0 / other,
@@ -250,7 +250,7 @@ impl DivAssign<Vector3> for Face {
     }
 }
 
-impl Neg for Face {
+impl Neg for Plane {
     type Output = Self;
     fn neg(self) -> Self::Output {
         Self {
@@ -263,7 +263,7 @@ impl Neg for Face {
 }
 
 // Doesn't compare connections as the comparison may be used to check for duplicate faces.
-impl PartialEq for Face {
+impl PartialEq for Plane {
     fn eq(&self, other: &Self) -> bool {
         self.v0 == other.v0 && self.v1 == other.v1 && self.v2 == other.v2
     }
