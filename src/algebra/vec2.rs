@@ -1,11 +1,11 @@
 //use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAs>
 //use std::f32::consts::PI;
-use crate::ProceduralOperators;
+use crate::{ProceduralOperators};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vector2 {
-    x: f32,
-    y: f32,
+    pub x: f32,
+    pub y: f32,
 }
 
 impl Vector2 {
@@ -46,7 +46,7 @@ impl Vector2 {
     }
 
     /// Generalization to any power n
-    pub fn smin_polynomialN(x: f32, y: f32, k: f32, n: f32) -> Self {
+    pub fn smin_polynomial_n(x: f32, y: f32, k: f32, n: f32) -> Self {
         let h = (k-(x-y).abs()).max(0.0)/k;
         let m = h.powf(n)*0.5;
         let s = m*k/n;
