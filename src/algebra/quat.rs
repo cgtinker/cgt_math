@@ -275,7 +275,6 @@ impl Quaternion {
             nor[2] = 0.0;
 
             if (tvec[0].abs() + tvec[1].abs()) < EPS {
-                println!("<eps");
                 nor[0] = 1.0;
             }
             co = tvec[2];

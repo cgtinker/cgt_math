@@ -203,7 +203,6 @@ impl Points {
     /// TODO: Panic if not normalized
     pub fn circle_from_uv(center: Vector3, u: Vector3, v: Vector3, radius: f32, n: usize) -> Self {
         let theta = Self::linspace(0.0, 2.0*PI, n+1);
-        println!("{:?}", theta);
         let mut vec = Vec::with_capacity(n);
 
         for i in 0..n {
