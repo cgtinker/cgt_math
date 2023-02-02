@@ -1,4 +1,4 @@
-use crate::{Quaternion, Vector3};
+use crate::{Quaternion, Vector3, RotationMatrix};
 use std::f32::consts::PI;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign, Index, IndexMut};
 
@@ -36,6 +36,36 @@ impl Euler {
     }
 
     pub const ZERO: Self = Self { v: Vector3::ZERO };
+
+    // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
+    pub fn to_rotation_matrix(&self) -> RotationMatrix {
+        // let rx = RotationMatrix::new(1.0, 0.0, 0.0, 0.0, self.v.x.cos(), -self.v.x.sin(), 0.0, self.v.x.sin(), self.v.x.cos());
+        // let ry = RotationMatrix::new(self.v.y.cos(), 0.0, self.v.y.sin(), 0.0, 1.0, 0.0, -self.v.y.sin(), 0.0, self.v.y.cos());
+        // let rz = RotationMatrix::new(self.v.z.cos(), -self.v.z.sin(), 0.0, self.v.z.sin(), self.v.z.cos(), 0.0, 0.0, 0.0, 1.0);
+        // (rx*ry*rz).transpose()
+        let cx = self.v.x.cos();
+        let cy = self.v.y.cos();
+        let cz = self.v.z.cos();
+        let sx = self.v.x.sin();
+        let sy = self.v.y.sin();
+        let sz = self.v.z.sin();
+        let cxcz = cx*cz;
+        let cxsz = cx*sz;
+        let sxcz = sx*cz;
+        let sxsz = sx*sz;
+
+        RotationMatrix::new(
+            cy*cz,
+            cy*sz,
+            -sy,
+            sy*sxcz-cxsz,
+            sy*sxsz+cxcz,
+            cy*sx,
+            sy*cxcz+sxsz,
+            sy*cxsz-sxcz,
+            cy*cx,
+            )
+    }
 
     // based on cgmath euler conversion https://github.com/rustgd/cgmath
     pub fn from_quat(quat: Quaternion, order: EulerOrder) -> Self {

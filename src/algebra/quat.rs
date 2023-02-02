@@ -193,6 +193,7 @@ impl Quaternion {
         }
     }
 
+    // TODO: find a custom routine for that
     // Based on https://github.com/dfelinto/blender from_track_quat mathutil
     pub fn from_vec_to_track_quat(vec: Vector3, mut axis: u8, upflag: u8) -> Self {
         const EPS: f32 = 1e-4f32;
@@ -685,31 +686,25 @@ impl Div<f32> for Quaternion {
 impl Mul<Quaternion> for Quaternion {
     type Output = Quaternion;
     fn mul(self, other: Self) -> Self::Output {
-        let a = &self.q;
-        let b = &other.q;
-        let w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
-        let x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
-        let y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
-        let z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
+        let q1 = &self.q;
+        let q2 = &other.q;
+        let x =  q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
+        let y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
+        let z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
+        let w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
         Self { q: Vector4 { x: x, y: y, z: z, w: w } }
     }
 }
 
 // Quat mul
-/// Based on https://github.com/blender/blender/ math_rotation
 impl MulAssign<Quaternion> for Quaternion {
     fn mul_assign(&mut self, other: Self) {
-        let a = self.q;
-        let b = other.q;
-        self.q.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
-        self.q.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
-        self.q.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
-        self.q.z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
-        // following seems to be blenders mathutils quat multiplication (full prod)
-        // let w = a[1] * b[1] - a[2] * b[2] - a[3] * b[3] - a[0] * b[0];
-        // let x = a[1] * b[2] + a[2] * b[1] + a[3] * b[0] - a[0] * b[3];
-        // let y = a[1] * b[3] + a[3] * b[1] + a[0] * b[2] - a[2] * b[0];
-        // let z = a[1] * b[0] + a[0] * b[1] + a[2] * b[3] - a[3] * b[2];
+        let q1 = self.q;
+        let q2 = &other.q;
+        self.q.x =  q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
+        self.q.y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
+        self.q.z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
+        self.q.w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
     }
 }
 

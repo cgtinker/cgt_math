@@ -29,6 +29,24 @@ impl RotationMatrix {
         }
     }
 
+    pub fn row(&self, index: usize) -> Vector3 {
+        match index {
+            0 => self.x,
+            1 => self.y,
+            2 => self.z,
+            _ => panic!("Index Error: {}", index),
+        }
+    }
+
+    pub fn col(&self, index: usize) -> Vector3 {
+        match index {
+            0 => Vector3::new(self.x.x, self.y.x, self.z.x),
+            1 => Vector3::new(self.x.y, self.y.y, self.z.y),
+            2 => Vector3::new(self.x.z, self.y.z, self.z.z),
+            _ => panic!("Index Error: {}", index),
+        }
+    }
+
     pub const fn from_array(mat: [[f32; 3]; 3]) -> Self {
         Self {
             x: Vector3::from_array(mat[0]),
@@ -64,33 +82,14 @@ impl RotationMatrix {
         self.x.is_normalized() && self.y.is_normalized() && self.z.is_normalized()
     }
 
-    // based on blenders euler to quaternion conversion https://github.com/blender
+    // based on
+    // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
     #[inline]
-    pub fn from_euler(eul: Euler) -> Self {
-        let ci = eul[0].cos();
-        let cj = eul[1].cos();
-        let ch = eul[2].cos();
-        let si = eul[0].cos();
-        let sj = eul[1].cos();
-        let sh = eul[2].cos();
-        let cc = ci * ch;
-        let cs = ci * sh;
-        let sc = si * ch;
-        let ss = si * sh;
-
-        let mut mat = RotationMatrix::IDENTITY;
-        mat[0][0] = cj * ch;
-        mat[1][0] = sj * sc - cs;
-        mat[2][0] = sj * cc + ss;
-        mat[0][1] = cj * sh;
-        mat[1][1] = sj * ss + cc;
-        mat[2][1] = sj * cs - sc;
-        mat[0][2] = -sj;
-        mat[1][2] = cj * si;
-        mat[2][2] = cj * ci;
-        mat
+    pub fn from_euler(rot: Euler) -> Self {
+        rot.to_rotation_matrix()
     }
 
+    // TODO: rpart of routine
     // based on blenders euler to quaternion conversion https://github.com/blender
     pub fn to_euler_x2(&self) -> (Euler, Euler) {
         cgt_assert!(self.is_normalized());
@@ -113,7 +112,7 @@ impl RotationMatrix {
             (eul1, eul1)
         }
     }
-
+    // TODO: Compare benchmarks
     // based on blenders quaternion to matrix conversion https://github.com/blender
     #[inline]
     pub fn from_quaternion(quat: Quaternion) -> Self {
@@ -147,6 +146,35 @@ impl RotationMatrix {
         mat
     }
 
+    // https://www.euclideanspace.com/maths/geometry/rotations/conversions/
+    #[inline]
+    pub fn from_quat(q: Quaternion) -> Self {
+        cgt_assert!(q.is_normalized());
+        let xx = q.q.x*q.q.x;
+        let xy = q.q.x*q.q.y;
+        let xz = q.q.x*q.q.z;
+        let xw = q.q.x*q.q.w;
+
+        let yy = q.q.y*q.q.y;
+        let yz = q.q.y*q.q.z;
+        let yw = q.q.y*q.q.w;
+
+        let zz = q.q.z*q.q.z;
+        let zw = q.q.z*q.q.w;
+        RotationMatrix::new(
+            1.0-2.0*(yy-zz),
+            2.0*(xy+zw),
+            2.0*(xz-yw),
+            2.0*(xy-zw),
+            1.0-2.0*(xx-zz),
+            2.0*(yz+xw),
+            2.0*(xz+yw),
+            2.0*(yz-xw),
+            1.0-2.0*(xx-yy),
+        )
+    }
+
+    // TODO: find own routine for that
     // based on blenders euler to quaternion conversion https://github.com/blender
     pub fn to_compatible_euler(&self, oldrot: Euler) -> Euler {
         cgt_assert!(self.is_normalized());
@@ -154,16 +182,73 @@ impl RotationMatrix {
         eul1.compatible_euler(&oldrot);
         eul2.compatible_euler(&oldrot);
 
-        let d1 = (eul1[0] - oldrot[0]).abs() + (eul1[1] - oldrot[1]).abs() + (eul1[2] - oldrot[2]).abs();
-        let d2 = (eul2[0] - oldrot[0]).abs() + (eul2[1] - oldrot[1]).abs() + (eul2[2] - oldrot[2]).abs();
+        let d1 =
+            (eul1[0] - oldrot[0]).abs() + (eul1[1] - oldrot[1]).abs() + (eul1[2] - oldrot[2]).abs();
+        let d2 =
+            (eul2[0] - oldrot[0]).abs() + (eul2[1] - oldrot[1]).abs() + (eul2[2] - oldrot[2]).abs();
         if d1 > d2 {
             eul2
-        }
-        else {
+        } else {
             eul1
         }
     }
 
+    fn diagonal(&self) -> Vector3 {
+        Vector3 {
+            x: self.x.x,
+            y: self.y.y,
+            z: self.z.z,
+        }
+    }
+
+    // sum of the diagonal
+    fn trace(&self) -> f32 {
+        self.diagonal().sum()
+    }
+    // TODO: Compare benchmarks
+    pub fn to_quat(&self) -> Quaternion {
+        // https://www.euclideanspace.com/maths/geometry/rotations/conversions/
+        // http://www.cs.ucr.edu/~vbz/resources/quatut.pdf
+        cgt_assert!(self.is_normalized());
+        let mat = self;
+        let trace = mat.trace();
+        let half: f32 = 0.5f32;
+
+        if trace >= 0.0f32 {
+            let s = (1.0f32 + trace).sqrt();
+            let w = half * s;
+            let s = half / s;
+            let x = (mat[1][2] - mat[2][1]) * s;
+            let y = (mat[2][0] - mat[0][2]) * s;
+            let z = (mat[0][1] - mat[1][0]) * s;
+            Quaternion::new(x, y, z, w)
+        } else if (mat[0][0] > mat[1][1]) && (mat[0][0] > mat[2][2]) {
+            let s = ((mat[0][0] - mat[1][1] - mat[2][2]) + 1.0f32).sqrt();
+            let x = half * s;
+            let s = half / s;
+            let y = (mat[1][0] + mat[0][1]) * s;
+            let z = (mat[0][2] + mat[2][0]) * s;
+            let w = (mat[1][2] - mat[2][1]) * s;
+            Quaternion::new(x, y, z, w)
+        } else if mat[1][1] > mat[2][2] {
+            let s = ((mat[1][1] - mat[0][0] - mat[2][2]) + 1.0f32).sqrt();
+            let y = half * s;
+            let s = half / s;
+            let z = (mat[2][1] + mat[1][2]) * s;
+            let x = (mat[1][0] + mat[0][1]) * s;
+            let w = (mat[2][0] - mat[0][2]) * s;
+            Quaternion::new(x, y, z, w)
+        } else {
+            let s = ((mat[2][2] - mat[0][0] - mat[1][1]) + 1.0f32).sqrt();
+            let z = half * s;
+            let s = half / s;
+            let x = (mat[0][2] + mat[2][0]) * s;
+            let y = (mat[2][1] + mat[1][2]) * s;
+            let w = (mat[0][1] - mat[1][0]) * s;
+            Quaternion::new(x, y, z, w)
+        }
+    }
+    // TODO: Compare benchmarks
     // based on blenders matrix to quaternion conversion https://github.com/blender
     #[inline]
     pub fn to_quaternion(&self) -> Quaternion {
@@ -190,7 +275,7 @@ impl RotationMatrix {
                 q.w = (mat[1][2] - mat[2][1]) * s;
                 q.y = (mat[1][0] + mat[0][1]) * s;
                 q.z = (mat[2][0] + mat[0][2]) * s;
-            } else if  mat[1][1] > mat[2][2] {
+            } else if mat[1][1] > mat[2][2] {
                 let mut s: f32 = 2.0f32 * (1.0f32 + mat[1][1] - mat[0][0] - mat[2][2]).sqrt();
                 q.y = 0.25f32 * s;
                 s = 1.0f32 / s;
@@ -212,7 +297,6 @@ impl RotationMatrix {
             if q.w < 0.0f32 {
                 q *= -1.0f32;
             }
-
         }
         let res = Quaternion::from_vec(q);
         res.normalize()
@@ -343,15 +427,27 @@ impl SubAssign<RotationMatrix> for RotationMatrix {
 impl Mul<RotationMatrix> for RotationMatrix {
     type Output = Self;
     #[inline]
-    fn mul(self, other: Self) -> Self::Output {
-        Self::from_vecs(self.x * other.x, self.y * other.y, self.z * other.z)
+    fn mul(self, rhs: Self) -> Self::Output {
+        Self::new(
+            rhs.row(0).dot(self.col(0)),
+            rhs.row(0).dot(self.col(1)),
+            rhs.row(0).dot(self.col(2)),
+
+            rhs.row(1).dot(self.col(0)),
+            rhs.row(1).dot(self.col(1)),
+            rhs.row(1).dot(self.col(2)),
+
+            rhs.row(2).dot(self.col(0)),
+            rhs.row(2).dot(self.col(1)),
+            rhs.row(2).dot(self.col(2)),
+        )
     }
 }
 
 impl MulAssign<RotationMatrix> for RotationMatrix {
     #[inline]
-    fn mul_assign(&mut self, other: Self) {
-        *self = self.mul(other);
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = self.mul(rhs)
     }
 }
 

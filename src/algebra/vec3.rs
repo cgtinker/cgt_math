@@ -334,8 +334,8 @@ impl Vector3 {
 
     pub fn is_normalized(&self) -> bool {
         let len = self.length();
-        const MIN: f32 = 1.0 - 1e-12;
-        const MAX: f32 = 1.0 + 1e-12;
+        const MIN: f32 = 1.0f32 - 1.0e-6;
+        const MAX: f32 = 1.0f32 + 1.0e-6;
         len >= MIN && len <= MAX
     }
     /// Returns length of this vector.
