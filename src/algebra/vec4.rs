@@ -440,6 +440,15 @@ impl Vector4 {
         self.clone() / self.length()
     }
 
+
+    pub fn is_normalized(&self) -> bool {
+         let len = self.length();
+         const MIN: f32 = 1.0f32 - 1.0e-6;
+         const MAX: f32 = 1.0f32 + 1.0e-6;
+         println!("len {:?}, min {}, max {}", len, MIN, MAX);
+         len >= MIN && len <= MAX
+    }
+
     /// Returns this vector projected on another vector.
     /// # Example:
     /// ```
@@ -624,6 +633,14 @@ impl Mul<f32> for Vector4 {
     }
 }
 
+impl MulAssign<f32> for Vector4 {
+    fn mul_assign(&mut self, other: f32) {
+        self.x *= other;
+        self.y *= other;
+        self.z *= other;
+        self.w *= other;
+    }
+}
 impl Mul<Vector4> for Vector4 {
     type Output = Vector4;
     fn mul(self, other: Self) -> Self::Output {
@@ -636,14 +653,12 @@ impl Mul<Vector4> for Vector4 {
     }
 }
 
-impl MulAssign for Vector4 {
+impl MulAssign<Vector4> for Vector4 {
     fn mul_assign(&mut self, other: Self) {
-        *self = Self {
-            x: self.x * other.x,
-            y: self.y * other.y,
-            z: self.z * other.z,
-            w: self.w * other.w,
-        }
+        self.x *= other.x;
+        self.y *= other.y;
+        self.z *= other.z;
+        self.w *= other.w;
     }
 }
 

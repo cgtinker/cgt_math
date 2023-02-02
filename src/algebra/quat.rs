@@ -130,35 +130,7 @@ impl Quaternion {
 
     /// Based on https://github.com/blender/blender/ math_rotation
     pub fn quat_to_rotation_matrix(&self) -> RotationMatrix {
-        const SQRT2: f64 = 1.41421356237309504880;
-        let q0: f64 = SQRT2 * self.q.w as f64;
-        let q1: f64 = SQRT2 * self.q.x as f64;
-        let q2: f64 = SQRT2 * self.q.y as f64;
-        let q3: f64 = SQRT2 * self.q.z as f64;
-
-        let qda: f64 = q0 * q1;
-        let qdb: f64 = q0 * q2;
-        let qdc: f64 = q0 * q3;
-        let qaa: f64 = q1 * q1;
-        let qab: f64 = q1 * q2;
-        let qac: f64 = q1 * q3;
-        let qbb: f64 = q2 * q2;
-        let qbc: f64 = q2 * q3;
-        let qcc: f64 = q3 * q3;
-
-        let m00: f32 = (1.0 - qbb - qcc) as f32;
-        let m01: f32 = (qdc + qab) as f32;
-        let m02: f32 = (-qdb + qac) as f32;
-
-        let m10: f32 = (-qdc + qab) as f32;
-        let m11: f32 = (1.0 - qaa - qcc) as f32;
-        let m12: f32 = (qda + qbc) as f32;
-
-        let m20: f32 = (qdb + qac) as f32;
-        let m21: f32 = (-qda + qbc) as f32;
-        let m22: f32 = (1.0 - qaa - qbb) as f32;
-
-        RotationMatrix::new(m00, m01, m02, m10, m11, m12, m20, m21, m22)
+        RotationMatrix::from_quaternion(*self)
     }
 
     /// From the columns of a 3x3 rotation matrix.
@@ -605,9 +577,17 @@ impl Quaternion {
     /// assert_eq!(a.normalize(), b);
     /// ```
     pub fn normalize(&self) -> Self {
-        Self {
-            q: self.q.normalize(),
+        let len = self.q.length();
+        if len != 0.0 {
+            *self * (1.0/len)
         }
+        else {
+            Quaternion::IDENTITY
+        }
+    }
+
+    pub fn is_normalized(&self) -> bool {
+        self.q.is_normalized()
     }
 
     /// Returns the inverse of this vector.
@@ -631,6 +611,11 @@ impl Quaternion {
         self.conjugate() * 1.0 / f
     }
 
+    pub fn rotation_between_quats(&self, other: Self) -> Self {
+        let mut q = self.conjugate();
+        q *= 1.0f32 / self.dot(*self);
+        q*other
+    }
 
     pub fn conjugate(&self) -> Self {
         Self {
@@ -682,6 +667,12 @@ impl Mul<f32> for Quaternion {
     }
 }
 
+impl MulAssign<f32> for Quaternion {
+    fn mul_assign(&mut self, val: f32) {
+        self.q *= val
+    }
+}
+
 impl Div<f32> for Quaternion {
     type Output = Quaternion;
     fn div(self, val: f32) -> Self::Output {
@@ -706,7 +697,7 @@ impl Mul<Quaternion> for Quaternion {
 
 // Quat mul
 /// Based on https://github.com/blender/blender/ math_rotation
-impl MulAssign for Quaternion {
+impl MulAssign<Quaternion> for Quaternion {
     fn mul_assign(&mut self, other: Self) {
         let a = self.q;
         let b = other.q;
