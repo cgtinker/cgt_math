@@ -2,10 +2,9 @@
 name = "cgt_math"
 version = "0.0.1"
 edition = "2021"
-authors = ["Denys Hsu"]
+authors = ["cgtinker"]
+license = "GPL-2.0"
 
 [lib]
 name="cgt_math"
 path="src/lib.rs"
-
-[dependencies]

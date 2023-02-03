@@ -1,7 +1,7 @@
 use std::fmt;
 use std::ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign};
 
-use crate::{Euler, Quaternion, Vector3, Vector4};
+use crate::{Euler, Quaternion, Vector3};
 
 #[derive(Clone, Copy)]
 pub struct RotationMatrix {
@@ -102,7 +102,7 @@ impl RotationMatrix {
         cgt_assert!(self.is_normalized());
         let mat: &RotationMatrix = self;
         // cy vs sy (maybe swap indecies? [1][0]..)
-        let sy = (mat[0][0]*mat[0][0] + mat[0][1]*mat[0][1]).sqrt()
+        // let sy = (mat[0][0]*mat[0][0] + mat[0][1]*mat[0][1]).sqrt();
         let cy = mat[0][0].hypot(mat[0][1]);
         let mut eul1 = Euler::ZERO;
         let mut eul2 = Euler::ZERO;
@@ -192,36 +192,36 @@ impl RotationMatrix {
         cgt_assert!(self.is_normalized());
         let mat: &RotationMatrix = self;
         let trace = mat.trace();
-        const half: f32 = 0.5f32;
+        const HALF: f32 = 0.5f32;
 
         if trace >= 0.0f32 {
             let s = (1.0f32 + trace).sqrt();
-            let w = half * s;
-            let s = half / s;
+            let w = HALF * s;
+            let s = HALF / s;
             let x = (mat[1][2] - mat[2][1]) * s;
             let y = (mat[2][0] - mat[0][2]) * s;
             let z = (mat[0][1] - mat[1][0]) * s;
             Quaternion::new(x, y, z, w)
         } else if (mat[0][0] > mat[1][1]) && (mat[0][0] > mat[2][2]) {
             let s = ((mat[0][0] - mat[1][1] - mat[2][2]) + 1.0f32).sqrt();
-            let x = half * s;
-            let s = half / s;
+            let x = HALF * s;
+            let s = HALF / s;
             let y = (mat[1][0] + mat[0][1]) * s;
             let z = (mat[0][2] + mat[2][0]) * s;
             let w = (mat[1][2] - mat[2][1]) * s;
             Quaternion::new(x, y, z, w)
         } else if mat[1][1] > mat[2][2] {
             let s = ((mat[1][1] - mat[0][0] - mat[2][2]) + 1.0f32).sqrt();
-            let y = half * s;
-            let s = half / s;
+            let y = HALF * s;
+            let s = HALF / s;
             let z = (mat[2][1] + mat[1][2]) * s;
             let x = (mat[1][0] + mat[0][1]) * s;
             let w = (mat[2][0] - mat[0][2]) * s;
             Quaternion::new(x, y, z, w)
         } else {
             let s = ((mat[2][2] - mat[0][0] - mat[1][1]) + 1.0f32).sqrt();
-            let z = half * s;
-            let s = half / s;
+            let z = HALF * s;
+            let s = HALF / s;
             let x = (mat[0][2] + mat[2][0]) * s;
             let y = (mat[2][1] + mat[1][2]) * s;
             let w = (mat[0][1] - mat[1][0]) * s;

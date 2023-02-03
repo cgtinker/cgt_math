@@ -39,7 +39,7 @@ impl Euler {
 
     // TODO: impl conv
     // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
-    pub fn from_rotation_matrix(m: RotationMatrix) {}
+    pub fn from_rotation_matrix(_m: RotationMatrix) {}
 
 
     // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
@@ -74,9 +74,9 @@ impl Euler {
 
     // based on cgmath euler conversion https://github.com/rustgd/cgmath
     pub fn from_quat(quat: Quaternion, order: EulerOrder) -> Self {
-        let mut x = Self::heading(quat, order);
-        let mut y = Self::attitude(quat, order);
-        let mut z = Self::bank(quat, order);
+        let x = Self::heading(quat, order);
+        let y = Self::attitude(quat, order);
+        let z = Self::bank(quat, order);
         Self::new(x, y, z)
     }
 
