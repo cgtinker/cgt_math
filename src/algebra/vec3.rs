@@ -1,6 +1,6 @@
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign, Index, IndexMut};
 use std::f32::consts::PI;
-use crate::Vector4;
+use crate::{Vector4, Quaternion};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vector3 {
@@ -643,7 +643,7 @@ impl SubAssign for Vector3 {
 }
 
 impl Mul<f32> for Vector3 {
-    type Output = Vector3;
+    type Output = Self;
     fn mul(self, val: f32) -> Self::Output {
         Vector3 {
             x: self.x * val,
@@ -653,8 +653,19 @@ impl Mul<f32> for Vector3 {
     }
 }
 
+impl Mul<Quaternion> for Vector3 {
+    type Output = Self;
+    fn mul(self, quat: Quaternion) -> Self::Output {
+        let q = &quat.q;
+        let u = Vector3::new(q.x, q.y, q.z);
+        let s = q.w;
+
+        u*u.dot(self)*2.0f32 + self*(s*s-u.dot(u)) + u.cross(self)*2.0f32*s
+    }
+}
+
 impl Mul<Vector3> for Vector3 {
-    type Output = Vector3;
+    type Output = Self;
     fn mul(self, other: Self) -> Self::Output {
         Vector3 {
             x: self.x * other.x,

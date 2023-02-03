@@ -10,6 +10,13 @@ pub struct Quaternion {
     pub q: Vector4,
 }
 
+#[derive(Copy, Clone, Debug)]
+pub enum Axis {
+    X,
+    Y,
+    Z,
+}
+
 impl Quaternion {
     /// Create identity quaternion.
     /// # Example
@@ -72,33 +79,47 @@ impl Quaternion {
         self.q.to_array()
     }
 
-    // TODO:  might have to swite q&&x
-    // https://www.euclideanspace.com/maths/algebra/vectors/angleBetween/index.htm
-    pub fn from_angle_between_vectors(v1: Vector3, v2: Vector3) -> Self {
-        let d = v1.dot(v2);
-        let axis = v1.cross(v2);
-
-        let qw = (v1.length_squared() * v2.length_squared()).sqrt() + d;
-        if qw < 0.0001 {
-            let res = Self {
-                q: Vector4 {
-                    x: 0.0,
-                    y: -v1.z,
-                    z: v1.y,
-                    w: v1.x,
-                },
-            };
-            return res.normalize();
+    // rotation offsets based of rotation differences
+    const fn get_axis_vector(axis: Axis) -> Vector3 {
+        match axis {
+            Axis::X => Vector3::X,
+            Axis::Y => Vector3::Y,
+            Axis::Z => Vector3::Z,
         }
-        let res = Self {
-            q: Vector4 {
-                x: qw,
-                y: axis.x,
-                z: axis.y,
-                w: axis.z,
-            },
-        };
-        return res.normalize();
+    }
+
+    // based on opengl rotation tutorial added track and up axis
+    pub fn rotate_towards(dir: Vector3, track: Axis, up: Axis) -> Self {
+        cgt_assert!(dir.is_normalized());
+        if dir.length_squared() < 0.0001 {
+            return Quaternion::IDENTITY;
+        }
+        let right = dir.cross(Vector3::Z);
+        let prev_up = right.cross(dir);
+        let q1 = Self::rotation_between(Self::get_axis_vector(track), dir);
+        let new_up = Self::get_axis_vector(up) * q1;
+        let q2 = Self::rotation_between(new_up.normalize(), prev_up.normalize());
+        q2 * q1
+    }
+
+    // based on opengl rotation tutorial
+    pub fn rotation_between(start: Vector3, dest: Vector3) -> Self {
+        cgt_assert!(start.is_normalized());
+        cgt_assert!(dest.is_normalized());
+
+        let cos_theta: f32 = start.dot(dest);
+        if cos_theta < -1.0f32+0.0001 {
+            return Quaternion::from_axis_angle(start.perpendicular().normalize(), PI/2.0);
+        }
+        let rot_axis = start.cross(dest);
+        let s: f32 = ((1.0f32+cos_theta)*2.0f32).sqrt();
+        let invs: f32 = 1.0/s;
+        Quaternion::new(
+            rot_axis.x*invs,
+            rot_axis.y*invs,
+            rot_axis.z*invs,
+            s*0.5f32
+        )
     }
 
     pub fn from_axis_angle(axis: Vector3, angle: f32) -> Self {
@@ -193,7 +214,7 @@ impl Quaternion {
         }
     }
 
-    // TODO: find a custom routine for that
+    // TODO: Remove =)
     // Based on https://github.com/dfelinto/blender from_track_quat mathutil
     pub fn from_vec_to_track_quat(vec: Vector3, mut axis: u8, upflag: u8) -> Self {
         const EPS: f32 = 1e-4f32;
@@ -658,6 +679,15 @@ impl Sub for Quaternion {
     }
 }
 
+impl Div<f32> for Quaternion {
+    type Output = Quaternion;
+    fn div(self, val: f32) -> Self::Output {
+        Self {
+            q: Vector4::div(self.q, val),
+        }
+    }
+}
+
 // Scalar multiplication
 impl Mul<f32> for Quaternion {
     type Output = Quaternion;
@@ -674,25 +704,26 @@ impl MulAssign<f32> for Quaternion {
     }
 }
 
-impl Div<f32> for Quaternion {
-    type Output = Quaternion;
-    fn div(self, val: f32) -> Self::Output {
-        Self {
-            q: Vector4::div(self.q, val),
-        }
-    }
-}
-
 impl Mul<Quaternion> for Quaternion {
     type Output = Quaternion;
     fn mul(self, other: Self) -> Self::Output {
-        let q1 = &self.q;
-        let q2 = &other.q;
-        let x =  q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
-        let y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
-        let z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
-        let w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
-        Self { q: Vector4 { x: x, y: y, z: z, w: w } }
+
+        let a = &self.q;
+        let b = &other.q;
+        let mut q = Vector4::ZERO;
+        q.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+        q.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
+        q.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
+        q.z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
+        return Quaternion::from_vec(q);
+
+        //let q1 = &self.q;
+        //let q2 = &other.q;
+        //let x =  q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
+        //let y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
+        //let z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
+        //let w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
+        //Self { q: Vector4 { x: x, y: y, z: z, w: w } }
     }
 }
 
