@@ -10,13 +10,6 @@ pub struct Quaternion {
     pub q: Vector4,
 }
 
-#[derive(Copy, Clone, Debug)]
-pub enum Axis {
-    X,
-    Y,
-    Z,
-}
-
 impl Quaternion {
     /// Create identity quaternion.
     /// # Example
@@ -79,25 +72,31 @@ impl Quaternion {
         self.q.to_array()
     }
 
-    // rotation offsets based of rotation differences
-    const fn get_axis_vector(axis: Axis) -> Vector3 {
-        match axis {
-            Axis::X => Vector3::X,
-            Axis::Y => Vector3::Y,
-            Axis::Z => Vector3::Z,
-        }
-    }
-
     // based on opengl rotation tutorial added track and up axis
-    pub fn rotate_towards(dir: Vector3, track: Axis, up: Axis) -> Self {
+    /// Returns quaternion rotation based on direction vector,
+    /// using an tracking and up axis.
+    /// Up & Track Axis type of Vector3::X || Vector3::Y || Vector3::Z
+    /// Track != Up
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion, Vector3};
+    /// let eye = Vector3::new(2.5, 1.5, -3.0);
+    /// let dest = Vector3::new(0.0, -2.0, 1.0);
+    /// let dir = (dest-eye).normalize();
+    /// let q = Quaternion::rotate_towards(dir, Vector3::X, Vector3::Z);
+    /// let q2 = Quaternion::new(-0.32531965, -0.16741525, -0.82751817, 0.42585564);
+    /// assert_eq!(q, q2);
+    /// ```
+    pub fn rotate_towards(dir: Vector3, track: Vector3, up: Vector3) -> Self {
         cgt_assert!(dir.is_normalized());
+        cgt_assert!(track != up);
         if dir.length_squared() < 0.0001 {
             return Quaternion::IDENTITY;
         }
         let right = dir.cross(Vector3::Z);
         let prev_up = right.cross(dir);
-        let q1 = Self::rotation_between(Self::get_axis_vector(track), dir);
-        let new_up = Self::get_axis_vector(up) * q1;
+        let q1 = Self::rotation_between(track, dir);
+        let new_up = up * q1;
         let q2 = Self::rotation_between(new_up.normalize(), prev_up.normalize());
         q2 * q1
     }
