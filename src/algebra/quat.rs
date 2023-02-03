@@ -149,7 +149,6 @@ impl Quaternion {
         Self::new(0.0, 0.0, s, c)
     }
 
-    /// Based on https://github.com/blender/blender/ math_rotation
     pub fn quat_to_rotation_matrix(&self) -> RotationMatrix {
         RotationMatrix::from_quaternion(*self)
     }
@@ -214,111 +213,6 @@ impl Quaternion {
         }
     }
 
-    // TODO: Remove =)
-    // Based on https://github.com/dfelinto/blender from_track_quat mathutil
-    pub fn from_vec_to_track_quat(vec: Vector3, mut axis: u8, upflag: u8) -> Self {
-        const EPS: f32 = 1e-4f32;
-        let mut nor: [f32; 3] = [0.0; 3];
-        let mut tvec: [f32; 3] = vec.to_array();
-        let mut co: f32;
-
-        assert!(axis != upflag);
-        assert!(axis <= 5);
-        assert!(upflag <= 2);
-
-        let len = vec.length();
-        if len == 0.0f32 {
-            return Quaternion::IDENTITY;
-        }
-
-        // rotate to axis
-        if axis > 2 {
-            axis -= 3;
-        } else {
-            tvec[0] *= -1.0;
-            tvec[1] *= -1.0;
-            tvec[2] *= -1.0;
-        }
-
-        // x-axis
-        if axis == 0 {
-            nor[0] = 0.0;
-            nor[1] = -tvec[2];
-            nor[2] = tvec[1];
-
-            if (tvec[1].abs() + tvec[2].abs()) < EPS {
-                nor[1] = 1.0;
-            }
-            co = tvec[0];
-        }
-        // y-axis
-        else if axis == 1 {
-            nor[0] = tvec[2];
-            nor[1] = 0.0;
-            nor[2] = -tvec[0];
-
-            if (tvec[0].abs() + tvec[2].abs()) < EPS {
-                nor[2] = 1.0;
-            }
-            co = tvec[1];
-        }
-        // z-axis
-        else {
-            nor[0] = -tvec[1];
-            nor[1] = tvec[0];
-            nor[2] = 0.0;
-
-            if (tvec[0].abs() + tvec[1].abs()) < EPS {
-                nor[0] = 1.0;
-            }
-            co = tvec[2];
-        }
-        co /= len;
-
-        // saacos
-        if co <= -1.0 {
-            co = PI;
-        } else if co >= 1.0 {
-            co = 0.0;
-        } else {
-            co = co.acos();
-        }
-
-        // q from angle
-        let q = Quaternion::from_axis_angle(Vector3::from_array(nor).normalize(), co);
-        if axis != upflag {
-            let angle: f32;
-            let mat = q.quat_to_rotation_matrix();
-            let fp = mat.z;
-
-            if axis == 0 {
-                if upflag == 1 {
-                    angle = 0.5 * fp.z.atan2(fp.y);
-                } else {
-                    angle = -0.5 * fp.y.atan2(fp.z);
-                }
-            } else if axis == 1 {
-                if upflag == 0 {
-                    angle = -0.5 * fp.z.atan2(fp.x);
-                } else {
-                    angle = 0.5 * fp.x.atan2(fp.z);
-                }
-            } else {
-                if upflag == 0 {
-                    angle = 0.5 * -fp.y.atan2(-fp.x);
-                } else {
-                    angle = -0.5 * -fp.x.atan2(-fp.y);
-                }
-            }
-
-            let si = angle.sin() / len;
-            let mut q2 = Quaternion::new(tvec[0] * si, tvec[1] * si, tvec[2] * si, angle.cos());
-            q2 *= q;
-            return q2
-        }
-        return q;
-    }
-
     /// Creates a quaternion from a 3x3 rotation matrix.
     #[inline]
     pub fn from_rotation_matrix(mat: &RotationMatrix) -> Self {
@@ -352,19 +246,6 @@ impl Quaternion {
     #[inline]
     pub fn is_finite(self) -> bool {
         self.q.is_finite()
-    }
-
-    /// Returns if any vector component is infinte.
-    /// # Example
-    /// ```
-    /// use cgt_math::Quaternion;
-    /// let a = Quaternion::new(12.0, 2.0, -1.0, 2.0);
-    /// assert_eq!(a.reset(0.0, 0.0, 0.0, 1.0), Quaternion::IDENTITY);
-    /// ```
-    pub fn reset(&self, x: f32, y: f32, z: f32, w: f32) -> Self {
-        Self {
-            q: self.q.reset(x, y, z, w),
-        }
     }
 
     /// Returns vector with absolute values.

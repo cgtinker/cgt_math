@@ -82,6 +82,11 @@ impl RotationMatrix {
         self.x.is_normalized() && self.y.is_normalized() && self.z.is_normalized()
     }
 
+
+    pub fn round(&self) -> Self {
+        Self::from_vecs(self.x.round(), self.y.round(), self.z.round())
+    }
+
     // based on
     // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
     #[inline]
@@ -91,13 +96,20 @@ impl RotationMatrix {
 
     // TODO: rpart of routine
     // based on blenders euler to quaternion conversion https://github.com/blender
+    // reread this
+    // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
     pub fn to_euler_x2(&self) -> (Euler, Euler) {
         cgt_assert!(self.is_normalized());
         let mat: &RotationMatrix = self;
+        // cy vs sy (maybe swap indecies? [1][0]..)
+        let sy = (mat[0][0]*mat[0][0] + mat[0][1]*mat[0][1]).sqrt()
         let cy = mat[0][0].hypot(mat[0][1]);
         let mut eul1 = Euler::ZERO;
         let mut eul2 = Euler::ZERO;
+        //then
+        // if sy < 1e-6 {}...
         if cy > 16.0f32 * 1.19209290e-7 {
+            // matlab: matrix indecies are swapped (?) [2, 1], [2, 0]....
             eul1[0] = mat[1][2].atan2(mat[2][2]);
             eul1[1] = -mat[0][2].atan2(cy);
             eul1[2] = mat[0][1].atan2(mat[0][0]);
@@ -112,43 +124,10 @@ impl RotationMatrix {
             (eul1, eul1)
         }
     }
-    // TODO: Compare benchmarks
-    // based on blenders quaternion to matrix conversion https://github.com/blender
-    #[inline]
-    pub fn from_quaternion(quat: Quaternion) -> Self {
-        cgt_assert!(quat.is_normalized());
-        const SQRT2: f32 = 1.4142135623;
-        let q0: f32 = SQRT2 * quat[3];
-        let q1: f32 = SQRT2 * quat[0];
-        let q2: f32 = SQRT2 * quat[1];
-        let q3: f32 = SQRT2 * quat[2];
-
-        let qda = q0 * q1;
-        let qdb = q0 * q2;
-        let qdc = q0 * q3;
-        let qaa = q1 * q1;
-        let qab = q1 * q2;
-        let qac = q1 * q3;
-        let qbb = q2 * q2;
-        let qbc = q2 * q3;
-        let qcc = q3 * q3;
-
-        let mut mat = RotationMatrix::IDENTITY;
-        mat[0][0] = 1.0 - qbb - qcc;
-        mat[0][1] = qdc + qab;
-        mat[0][2] = -qdb + qac;
-        mat[1][0] = -qdc + qab;
-        mat[1][1] = 1.0 - qaa - qcc;
-        mat[1][2] = qda + qbc;
-        mat[2][0] = qdb + qac;
-        mat[2][1] = -qda + qbc;
-        mat[2][2] = 1.0 - qaa - qbb;
-        mat
-    }
 
     // https://www.euclideanspace.com/maths/geometry/rotations/conversions/
     #[inline]
-    pub fn from_quat(q: Quaternion) -> Self {
+    pub fn from_quaternion(q: Quaternion) -> Self {
         cgt_assert!(q.is_normalized());
         let xx = q.q.x*q.q.x;
         let xy = q.q.x*q.q.y;
@@ -193,6 +172,7 @@ impl RotationMatrix {
         }
     }
 
+    /// Diagonal of the matrix.
     fn diagonal(&self) -> Vector3 {
         Vector3 {
             x: self.x.x,
@@ -201,18 +181,18 @@ impl RotationMatrix {
         }
     }
 
-    // sum of the diagonal
+    /// Sum of the diagonal.
     fn trace(&self) -> f32 {
         self.diagonal().sum()
     }
-    // TODO: Compare benchmarks
-    pub fn to_quat(&self) -> Quaternion {
+
+    pub fn to_quaternion(&self) -> Quaternion {
         // https://www.euclideanspace.com/maths/geometry/rotations/conversions/
         // http://www.cs.ucr.edu/~vbz/resources/quatut.pdf
         cgt_assert!(self.is_normalized());
-        let mat = self;
+        let mat: &RotationMatrix = self;
         let trace = mat.trace();
-        let half: f32 = 0.5f32;
+        const half: f32 = 0.5f32;
 
         if trace >= 0.0f32 {
             let s = (1.0f32 + trace).sqrt();
@@ -248,59 +228,6 @@ impl RotationMatrix {
             Quaternion::new(x, y, z, w)
         }
     }
-    // TODO: Compare benchmarks
-    // based on blenders matrix to quaternion conversion https://github.com/blender
-    #[inline]
-    pub fn to_quaternion(&self) -> Quaternion {
-        cgt_assert!(self.is_normalized());
-        // check trace of matrix - bad precision if close to -1
-        let mat: &RotationMatrix = self;
-        let trace = mat[0][0] + mat[1][1] + mat[2][2];
-
-        let mut q = Vector4::ZERO;
-        if trace > 0.0f32 {
-            let mut s: f32 = 2.0f32 * (1.0f32 + trace).sqrt();
-            q.w = 0.25f32 * s;
-            s = 1.0f32 / s;
-            q.x = (mat[1][2] - mat[2][1]) * s;
-            q.y = (mat[2][0] - mat[0][2]) * s;
-            q.z = (mat[0][1] - mat[1][0]) * s;
-        } else {
-            /* Find the biggest diagonal element to choose the best formula.
-             * Here trace should also be always >= 0, avoiding bad precision. */
-            if mat[0][0] > mat[1][1] && mat[0][0] > mat[2][2] {
-                let mut s: f32 = 2.0f32 * (1.0f32 + mat[0][0] - mat[1][1] - mat[2][2]).sqrt();
-                q.x = 0.25f32 * s;
-                s = 1.0f32 / s;
-                q.w = (mat[1][2] - mat[2][1]) * s;
-                q.y = (mat[1][0] + mat[0][1]) * s;
-                q.z = (mat[2][0] + mat[0][2]) * s;
-            } else if mat[1][1] > mat[2][2] {
-                let mut s: f32 = 2.0f32 * (1.0f32 + mat[1][1] - mat[0][0] - mat[2][2]).sqrt();
-                q.y = 0.25f32 * s;
-                s = 1.0f32 / s;
-
-                q.w = (mat[2][0] - mat[0][2]) * s;
-                q.x = (mat[1][0] + mat[0][1]) * s;
-                q.z = (mat[2][1] + mat[1][2]) * s;
-            } else {
-                let mut s = 2.0f32 * (1.0f32 + mat[2][2] - mat[0][0] - mat[1][1]).sqrt();
-                q.z = 0.25f32 * s;
-                s = 1.0f32 / s;
-
-                q.w = (mat[0][1] - mat[1][0]) * s;
-                q.x = (mat[2][0] + mat[0][2]) * s;
-                q.y = (mat[2][1] + mat[1][2]) * s;
-            }
-
-            /* Make sure W is non-negative for a canonical result. */
-            if q.w < 0.0f32 {
-                q *= -1.0f32;
-            }
-        }
-        let res = Quaternion::from_vec(q);
-        res.normalize()
-    }
 
     #[inline]
     pub fn from_axis_angle(vec: Vector3, angle: f32) -> Self {
@@ -332,10 +259,6 @@ impl RotationMatrix {
         )
     }
 
-    pub fn round(&self) -> Self {
-        Self::from_vecs(self.x.round(), self.y.round(), self.z.round())
-    }
-
     #[inline]
     pub fn from_rotation_y(angle: f32) -> Self {
         let (sin_a, cos_a) = angle.sin_cos();
@@ -356,20 +279,19 @@ impl RotationMatrix {
         )
     }
 
-    /// Returns `true` if, and only if, all elements are finite.
-    /// If any element is either `NaN`, positive or negative infinity, this will return `false`.
+    /// Returns if all elements are finite.
     #[inline]
     pub fn is_finite(&self) -> bool {
         self.x.is_finite() && self.y.is_finite() && self.z.is_finite()
     }
 
-    /// Returns `true` if any elements are `NaN`.
+    /// Returns if any elements are NaN.
     #[inline]
     pub fn is_nan(&self) -> bool {
         self.x.is_nan() || self.y.is_nan() || self.z.is_nan()
     }
 
-    /// Returns the transpose of `self`.
+    /// Returns the transpose.
     #[must_use]
     #[inline]
     pub fn transpose(&self) -> Self {
@@ -380,7 +302,7 @@ impl RotationMatrix {
         }
     }
 
-    /// Returns the determinant of `self`.
+    /// Returns the determinant.
     #[inline]
     pub fn determinant(&self) -> f32 {
         self.z.dot(self.x.cross(self.y))

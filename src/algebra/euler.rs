@@ -37,6 +37,11 @@ impl Euler {
 
     pub const ZERO: Self = Self { v: Vector3::ZERO };
 
+    // TODO: impl conv
+    // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
+    pub fn from_rotation_matrix(m: RotationMatrix) {}
+
+
     // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
     pub fn to_rotation_matrix(&self) -> RotationMatrix {
         // let rx = RotationMatrix::new(1.0, 0.0, 0.0, 0.0, self.v.x.cos(), -self.v.x.sin(), 0.0, self.v.x.sin(), self.v.x.cos());
@@ -72,17 +77,6 @@ impl Euler {
         let mut x = Self::heading(quat, order);
         let mut y = Self::attitude(quat, order);
         let mut z = Self::bank(quat, order);
-
-        if x == 0.0f32 {
-            x = 0.0;
-        }
-        if y == 0.0f32 {
-            y = 0.0;
-        }
-        if z == 0.0f32 {
-            z = 0.0;
-        }
-
         Self::new(x, y, z)
     }
 
