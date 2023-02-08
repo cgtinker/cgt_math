@@ -1,5 +1,6 @@
 use std::fmt;
 use std::ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::f32::consts::PI;
 
 use crate::{Euler, Quaternion, Vector3};
 
@@ -97,18 +98,17 @@ impl RotationMatrix {
     // TODO: rpart of routine
     // based on blenders euler to quaternion conversion https://github.com/blender
     // reread this
-    // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
     pub fn to_euler_x2(&self) -> (Euler, Euler) {
         cgt_assert!(self.is_normalized());
         let mat: &RotationMatrix = self;
-        // cy vs sy (maybe swap indecies? [1][0]..)
+        // cy vs sy thats the same. like exactly same besides idx swap
         // let sy = (mat[0][0]*mat[0][0] + mat[0][1]*mat[0][1]).sqrt();
         let cy = mat[0][0].hypot(mat[0][1]);
         let mut eul1 = Euler::ZERO;
         let mut eul2 = Euler::ZERO;
         //then
         // if sy < 1e-6 {}...
-        if cy > 16.0f32 * 1.19209290e-7 {
+        if cy > 1.0e-6 {
             // matlab: matrix indecies are swapped (?) [2, 1], [2, 0]....
             eul1[0] = mat[1][2].atan2(mat[2][2]);
             eul1[1] = -mat[0][2].atan2(cy);
@@ -125,10 +125,99 @@ impl RotationMatrix {
         }
     }
 
+
+    pub fn to_euler(&self) -> (Euler, Euler) {
+        /*
+         * http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
+         * Input matrix
+         * [            cos(y)cos(z)                    cos(y)sin(z)            -sin(y)     ]
+         * [ sin(x)sin(y)cos(z)-cos(x)sin(z) (sin(x)sin(y)sin(z)+cos(x)cos(z)  sin(x)cos(y) ]
+         * [ cos(x)sin(y)cos(z)+sin(x)sin(z) cos(x)sin(y)sin(z)-sin(x)cos(z)   cos(x)cos(y) ]
+         *
+         * [ cos(y)cos(z) sin(x)sin(y)cos(z)-cos(x)sin(z)  cos(x)sin(y)cos(z)+sin(x)sin(z) ]
+         * [ cos(y)sin(z) (sin(x)sin(y)sin(z)+cos(x)cos(z) cos(x)sin(y)sin(z)-sin(x)cos(z) ]
+         * [    -sin(y)             sin(x)cos(y)                     cos(x)cos(y)          ]
+         */
+        const MIN: f32 = -1.0 + 0.0001;
+        const MAX: f32 = 1.0 - 0.0001;
+        cgt_assert!(self.is_normalized());
+        let m = self;
+        if m[2][0] > MIN && m[2][0] < MAX {
+            let y = -m[2][0].asin();
+            let yy = PI - y;
+
+            let x = m[2][1].atan2(m[2][2]);
+            let xx = -m[2][1].atan2(-m[2][2]);
+
+            let z = m[1][0].atan2(m[0][0]);
+            let zz = -m[1][0].atan2(-m[0][0]);
+
+            (Euler::new(x, y, z), Euler::new(xx, yy, zz))
+        }
+        else {
+            // gibal lock state
+            let z = 0.0f32;
+            if m[2][0] < MIN {
+                let y = PI/2.0;
+                let x = m[0][1].atan2(m[0][2]);
+                (Euler::new(x, y, z), Euler::new(x, y, z))
+            }
+            else {
+                let yy = -PI/2.0;
+                let xx = -m[0][1].atan2(-m[0][2]);
+                (Euler::new(xx, yy, z), Euler::new(xx, yy, z))
+            }
+
+        }
+    }
+    pub fn to_eul(&self) -> (Euler, Euler) {
+        /*
+         * Default:
+         * [            cos(y)cos(z)                    cos(y)sin(z)            -sin(y)     ]
+         * [ sin(x)sin(y)cos(z)-cos(x)sin(z) (sin(x)sin(y)sin(z)+cos(x)cos(z)  sin(x)cos(y) ]
+         * [ cos(x)sin(y)cos(z)+sin(x)sin(z) cos(x)sin(y)sin(z)-sin(x)cos(z)   cos(x)cos(y) ]
+         *
+         * http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
+         * [ cos(y)cos(z) sin(x)sin(y)cos(z)-cos(x)sin(z)  cos(x)sin(y)cos(z)+sin(x)sin(z) ]
+         * [ cos(y)sin(z) (sin(x)sin(y)sin(z)+cos(x)cos(z) cos(x)sin(y)sin(z)-sin(x)cos(z) ]
+         * [    -sin(y)             sin(x)cos(y)                     cos(x)cos(y)          ]
+         */
+
+        cgt_assert!(self.is_normalized());
+        let m = self;
+        let si = m[0][0].hypot(m[0][1]);
+        if si > 1.0e-6 {
+            // y != 180 deg
+            let x = m[1][2].atan2(m[2][2]);
+            let y = -m[0][2].asin();
+            let z = m[0][1].atan2(m[0][0]);
+
+            let yy = PI - y;
+            let xx = -m[1][2].atan2(-m[2][2]);
+            let zz = -m[0][1].atan2(-m[0][0]);
+
+            (Euler::new(x, y, z), Euler::new(xx, yy, zz))
+        }
+        else {
+            // gibal lock state
+            let z = 0.0f32;
+            let y = PI/2.0;
+            let x = -m[2][1].atan2(m[1][1]);
+
+            let yy = -PI/2.0;
+            let xx = m[2][1].atan2(m[1][1]);
+            let zz = -m[0][1].atan2(-m[0][0]);
+
+            (Euler::new(x, y, z), Euler::new(xx, yy, zz))
+        }
+    }
+
+
     // https://www.euclideanspace.com/maths/geometry/rotations/conversions/
     #[inline]
     pub fn from_quaternion(q: Quaternion) -> Self {
         cgt_assert!(q.is_normalized());
+
         let xx = q.q.x*q.q.x;
         let xy = q.q.x*q.q.y;
         let xz = q.q.x*q.q.z;
@@ -140,16 +229,19 @@ impl RotationMatrix {
 
         let zz = q.q.z*q.q.z;
         let zw = q.q.z*q.q.w;
+
         RotationMatrix::new(
-            1.0-2.0*(yy-zz),
+            1.0-2.0*(yy+zz),
             2.0*(xy+zw),
             2.0*(xz-yw),
+
             2.0*(xy-zw),
-            1.0-2.0*(xx-zz),
+            1.0-2.0*(xx+zz),
             2.0*(yz+xw),
             2.0*(xz+yw),
+
             2.0*(yz-xw),
-            1.0-2.0*(xx-yy),
+            1.0-2.0*(xx+yy),
         )
     }
 

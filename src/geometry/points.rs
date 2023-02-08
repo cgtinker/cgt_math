@@ -77,7 +77,7 @@ impl Points {
             let point = Vector3::new(lx[i], ly[i], lz[i]);
             vec.push(point);
         }
-        Self { vec: vec }
+        Self { vec }
     }
 
     fn archemedian_spiral_properties(turns: f32, mut steps: f32, radius: f32, z_incr: f32, dif_radius: f32, clockwise: bool) -> 
@@ -97,8 +97,7 @@ impl Points {
 
         let step_z: f32 = z_scale / (steps - 1.0);
 
-        let mut verts: Vec<Vector3> = Vec::new();
-        verts.push(Vector3::new(radius, 0.0, 0.0));
+        let mut verts: Vec<Vector3> = vec![Vector3::new(radius, 0.0, 0.0)];
 
         let cur_phi: f32 = 0.0;
         let cur_z: f32 = 0.0;
@@ -165,49 +164,40 @@ impl Points {
     }
 
     pub fn arc(center: Vector3, radius: f32, from_angle: f32, to_angle: f32, n: usize) -> Self {
-        let thetha: Vec<f32> = Self::linspace(from_angle, to_angle, n);
-
-        let mut vec = Vec::with_capacity(n);
-        for i in 0..n {
-            let cos_t = thetha[i].cos();
-            let sin_t = thetha[i].sin();
-
-            let point = Vector3::new(
-                center.x + cos_t *  radius,
-                center.y,
-                center.z + sin_t * radius,
-            );
-            vec.push(point);
-        }
-        Self { vec: vec }
+        let linspace: Vec<f32> = Self::linspace(from_angle, to_angle, n);
+        let vec: Vec<Vector3> = linspace
+            .iter()
+            .take(n)
+            .map(|theta| Vector3::new(
+                    center.x+theta.cos()*radius,
+                    center.y,
+                    center.z+theta.sin()*radius))
+            .collect();
+        Self { vec }
     }
 
     pub fn circle(center: Vector3, radius: f32, n: usize) -> Self {
-        let thetha: Vec<f32> = Self::linspace(0.0, 2.0*PI, n+1);
-        let mut vec = Vec::with_capacity(n);
-        for i in 0..n {
-            let cos_t = thetha[i].cos();
-            let sin_t = thetha[i].sin();
-
-            let point = Vector3::new(
-                center.x + cos_t *  radius,
-                center.y,
-                center.z + sin_t * radius,
-            );
-            vec.push(point);
-        }
-        Self { vec: vec }
+        let linspace: Vec<f32> = Self::linspace(0.0, 2.0*PI, n+1);
+        let vec: Vec<Vector3> = linspace
+            .iter()
+            .take(n)
+            .map(|theta| Vector3::new(
+                    center.x+theta.cos()*radius,
+                    center.y,
+                    center.z+theta.sin()*radius))
+            .collect();
+        Self { vec }
     }
 
     /// U & V have to be normalized!
     /// TODO: Panic if not normalized
     pub fn circle_from_uv(center: Vector3, u: Vector3, v: Vector3, radius: f32, n: usize) -> Self {
-        let theta = Self::linspace(0.0, 2.0*PI, n+1);
+        let linspace = Self::linspace(0.0, 2.0*PI, n+1);
         let mut vec = Vec::with_capacity(n);
 
-        for i in 0..n {
-            let cos_t = theta[i].cos();
-            let sin_t = theta[i].sin();
+        for theta in linspace.iter().take(n) {
+            let cos_t = theta.cos();
+            let sin_t = theta.sin();
 
             let point = Vector3::new(
                 center.x + radius * u.x * cos_t + radius * v.x * sin_t,
@@ -216,7 +206,7 @@ impl Points {
             );
             vec.push(point);
         }
-        Self { vec: vec }
+        Self { vec }
     }
 }
 

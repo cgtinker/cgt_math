@@ -41,13 +41,17 @@ impl Euler {
     // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
     pub fn from_rotation_matrix(_m: RotationMatrix) {}
 
+    pub fn fround(&self, prec: u32) -> Self {
+        let p = 10_u32.pow(prec) as f32;
+        Self::new((self.v.x*p).trunc(), (self.v.y*p).trunc(), (self.v.z*p).trunc()) / p
+    }
+
 
     // http://eecs.qmul.ac.uk/~gslabaugh/publications/euler.pdf
     pub fn to_rotation_matrix(&self) -> RotationMatrix {
         // let rx = RotationMatrix::new(1.0, 0.0, 0.0, 0.0, self.v.x.cos(), -self.v.x.sin(), 0.0, self.v.x.sin(), self.v.x.cos());
         // let ry = RotationMatrix::new(self.v.y.cos(), 0.0, self.v.y.sin(), 0.0, 1.0, 0.0, -self.v.y.sin(), 0.0, self.v.y.cos());
         // let rz = RotationMatrix::new(self.v.z.cos(), -self.v.z.sin(), 0.0, self.v.z.sin(), self.v.z.cos(), 0.0, 0.0, 0.0, 1.0);
-        // (rx*ry*rz).transpose()
         let cx = self.v.x.cos();
         let cy = self.v.y.cos();
         let cz = self.v.z.cos();
@@ -59,6 +63,7 @@ impl Euler {
         let sxcz = sx*cz;
         let sxsz = sx*sz;
 
+        // transpose to save normalization
         RotationMatrix::new(
             cy*cz,
             cy*sz,

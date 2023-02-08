@@ -414,7 +414,7 @@ impl Vector4 {
         if self.dot(other) >= 0.0f32 {
             return 2.0 * (other-*self).length() / 2.0;
         }
-        return PI-2.0 * (other.neg()-*self).length() / 2.0;
+        PI-2.0 * (other.neg()-*self).length() / 2.0
     }
 
     pub fn mid_angle_weighted(&self, other: Self) -> Self {
@@ -445,7 +445,7 @@ impl Vector4 {
          let len = self.length();
          const MIN: f32 = 1.0f32 - 1.0e-6;
          const MAX: f32 = 1.0f32 + 1.0e-6;
-         println!("len {:?}, min {}, max {}", len, MIN, MAX);
+
          len >= MIN && len <= MAX
     }
 
