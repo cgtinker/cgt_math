@@ -97,7 +97,7 @@ impl Points {
 
         let step_z: f32 = z_scale / (steps - 1.0);
 
-        let mut verts: Vec<Vector3> = vec![Vector3::new(radius, 0.0, 0.0)];
+        let verts: Vec<Vector3> = vec![Vector3::new(radius, 0.0, 0.0)];
 
         let cur_phi: f32 = 0.0;
         let cur_z: f32 = 0.0;

@@ -1,9 +1,8 @@
 /* this script includes various martrix fns from: https://github.com/bitshifter/glam-rs f32/mat4.rs
  */
 use crate::{Vector3, Vector4, Quaternion, RotationMatrix};
-
-#[allow(dead_code)]
-use std::{ops::*};
+use std::ops::{Sub};
+//use std::ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Mat4x4 {
@@ -18,6 +17,7 @@ impl Mat4x4 {
     pub const NAN: Self = Self::from_vecs(Vector4::NAN, Vector4::NAN, Vector4::NAN, Vector4::NAN);
     pub const IDENTITY: Self = Self::from_vecs(Vector4::X, Vector4::Y, Vector4::Z, Vector4::W);
 
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         x0: f32, x1: f32, x2: f32, x3: f32,
         y0: f32, y1: f32, y2: f32, y3: f32,

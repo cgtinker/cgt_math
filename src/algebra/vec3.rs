@@ -57,7 +57,7 @@ impl Vector3 {
         if a.x < b.x {
             n=1.0-n;
         }
-        return a3.interpolate(b3,n)*((a.x).min(b.x)-m)
+        a3.interpolate(b3,n)*((a.x).min(b.x)-m)
     }
 
     /// Creates a new vector from an array.
@@ -336,7 +336,8 @@ impl Vector3 {
         let len = self.length();
         const MIN: f32 = 1.0f32 - 1.0e-6;
         const MAX: f32 = 1.0f32 + 1.0e-6;
-        len >= MIN && len <= MAX
+        //len >= MIN && len <= MAX
+        (MIN..=MAX).contains(&len)
     }
     /// Returns length of this vector.
     /// # Example:
@@ -403,7 +404,7 @@ impl Vector3 {
         if self.dot(other) >= 0.0f32 {
             return 2.0 * (other-*self).length() / 2.0;
         }
-        return PI-2.0 * (other.neg()-*self).length() / 2.0;
+        PI-2.0 * (other.neg()-*self).length() / 2.0
     }
 
     /// Returns angle weight as 0-1 factor
@@ -444,7 +445,7 @@ impl Vector3 {
     /// ```
     /// TODO: Handle 0. Division
     pub fn normalize(&self) -> Self {
-        self.clone() / self.length()
+        *self / self.length()
     }
 
     /// Retuns this vectors cross product with given vector.

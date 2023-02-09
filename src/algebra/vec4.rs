@@ -437,7 +437,7 @@ impl Vector4 {
     /// assert_eq!(a.normalize(), b);
     /// ```
     pub fn normalize(&self) -> Self {
-        self.clone() / self.length()
+        *self / self.length()
     }
 
 
@@ -446,7 +446,8 @@ impl Vector4 {
          const MIN: f32 = 1.0f32 - 1.0e-6;
          const MAX: f32 = 1.0f32 + 1.0e-6;
 
-         len >= MIN && len <= MAX
+         //len >= MIN && len <= MAX
+         (MIN..MAX).contains(&len)
     }
 
     /// Returns this vector projected on another vector.

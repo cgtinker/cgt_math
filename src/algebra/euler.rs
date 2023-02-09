@@ -27,12 +27,12 @@ pub struct Euler {
 impl Euler {
     pub const fn new(x: f32, y: f32, z: f32) -> Self {
         Self {
-            v: Vector3 { x: x, y: y, z: z },
+            v: Vector3 { x, y, z },
         }
     }
 
     pub const fn from_vec(v: Vector3) -> Self {
-        Self { v: v }
+        Self { v }
     }
 
     pub const ZERO: Self = Self { v: Vector3::ZERO };

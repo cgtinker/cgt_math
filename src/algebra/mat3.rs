@@ -12,6 +12,8 @@ pub struct RotationMatrix {
 }
 
 impl RotationMatrix {
+
+    #[allow(clippy::too_many_arguments)]
     pub const fn new(
         x0: f32,
         x1: f32,

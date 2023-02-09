@@ -24,31 +24,31 @@ impl ProceduralOperators for f32 {
     /// Allows to process long lists of dists
     /// in any arbitrary order. 
     fn smin_exponential(self, b: Self, k: Self) -> Self {
-        return -((-k*self).exp2()+(-k*b).exp2()).log2() / k;
+        -((-k*self).exp2()+(-k*b).exp2()).log2() / k
     }
 
     /// default k=8
     fn smin_power(self, b: Self, k: Self) -> Self {
         let a = self.powf(k);
         let b = b.powf(k);
-        return ((a*b)/(a+b)).powf(1.0/k);
+        ((a*b)/(a+b)).powf(1.0/k)
     }
 
     /// default k=.01
     fn smin_root(self, b: Self, k: Self) -> Self {
         let h = self-b;
-        return 0.5*((self+b)-(h*h+k).sqrt());
+        0.5*((self+b)-(h*h+k).sqrt())
     }
 
     /// Polynomial ordering is dependant
     fn smin_polynomial(self, b: Self, k: Self) -> Self {
         let h = (k-(self-b).abs()).max(0.0)/k;
-        return self.min(b) - h*h*k*(1.0/4.0);
+        self.min(b) - h*h*k*(1.0/4.0)
     }
 
     /// Polynomial ordering is dependant
     fn smin_polynomial_cubic(self, b: Self, k: Self) -> Self {
         let h = (k-(self-b).abs()).max(0.0)/k;
-        return self.min(b) - h*h*h*k*(1.0/6.0);
+        self.min(b) - h*h*h*k*(1.0/6.0)
     }
 }

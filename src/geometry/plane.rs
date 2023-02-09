@@ -30,10 +30,10 @@ impl Plane {
     /// Create a new face from vectors.
     pub const fn from_vecs(v0: Vector3, v1: Vector3, v2: Vector3, connections: [u32; 3]) -> Self {
         Self {
-            v0: v0,
-            v1: v1,
-            v2: v2,
-            connections: connections,
+            v0,
+            v1,
+            v2,
+            connections,
         }
     }
 
