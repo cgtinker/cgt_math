@@ -596,14 +596,6 @@ impl Mul<Quaternion> for Quaternion {
         q.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
         q.z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
         Quaternion::from_vec(q)
-
-        //let q1 = &self.q;
-        //let q2 = &other.q;
-        //let x =  q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
-        //let y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
-        //let z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
-        //let w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
-        //Self { q: Vector4 { x: x, y: y, z: z, w: w } }
     }
 }
 

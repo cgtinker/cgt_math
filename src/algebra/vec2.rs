@@ -1,6 +1,6 @@
 //use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAs>
 //use std::f32::consts::PI;
-use crate::{ProceduralOperators};
+use crate::{F32Utilities};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Vector2 {

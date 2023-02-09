@@ -2,7 +2,7 @@
 mod macros;
 
 mod algebra;
-pub use algebra::f32_extension::ProceduralOperators;
+pub use algebra::f32_extension::F32Utilities;
 pub use algebra::vec2::Vector2;
 pub use algebra::vec3::Vector3;
 pub use algebra::vec4::Vector4;

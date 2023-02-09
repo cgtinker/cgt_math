@@ -86,16 +86,6 @@ impl Vector4 {
     pub fn is_finite(self) -> bool {
         self.x.is_finite() && self.y.is_finite() && self.z.is_finite() && self.w.is_finite()
     }
-    /// Returns if any vector component is infinte.
-    /// # Example
-    /// ```
-    /// use cgt_math::Vector4;
-    /// let a = Vector4::new(12.0, 2.0, -1.0, 2.0);
-    /// assert_eq!(a.reset(0.0, 0.0, 0.0, 0.0), Vector4::ZERO);
-    /// ```
-    pub fn reset(&self, x: f32, y: f32, z: f32, w: f32) -> Self {
-        Self { x, y, z, w }
-    }
 
     /// Returns vector with absolute values.
     /// # Example:
