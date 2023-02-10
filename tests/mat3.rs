@@ -17,7 +17,7 @@ mod tests {
 
     #[test]
     fn from_quat() {
-        let q = Quaternion::new(1.0, 0.0, 0.0, 1.0);
+        let q = Quaternion::new(1.0, 1.0, 0.0, 0.0);
         let m = RotationMatrix::from_quaternion(q.normalize());
 
         assert_eq!(m.round(), RotationMatrix::new(

@@ -295,7 +295,7 @@ impl RotationMatrix {
             let x = (mat[1][2] - mat[2][1]) * s;
             let y = (mat[2][0] - mat[0][2]) * s;
             let z = (mat[0][1] - mat[1][0]) * s;
-            Quaternion::new(x, y, z, w)
+            Quaternion::new(w, x, y, z)
         } else if (mat[0][0] > mat[1][1]) && (mat[0][0] > mat[2][2]) {
             let s = ((mat[0][0] - mat[1][1] - mat[2][2]) + 1.0f32).sqrt();
             let x = HALF * s;
@@ -303,7 +303,7 @@ impl RotationMatrix {
             let y = (mat[1][0] + mat[0][1]) * s;
             let z = (mat[0][2] + mat[2][0]) * s;
             let w = (mat[1][2] - mat[2][1]) * s;
-            Quaternion::new(x, y, z, w)
+            Quaternion::new(w, x, y, z)
         } else if mat[1][1] > mat[2][2] {
             let s = ((mat[1][1] - mat[0][0] - mat[2][2]) + 1.0f32).sqrt();
             let y = HALF * s;
@@ -311,7 +311,7 @@ impl RotationMatrix {
             let z = (mat[2][1] + mat[1][2]) * s;
             let x = (mat[1][0] + mat[0][1]) * s;
             let w = (mat[2][0] - mat[0][2]) * s;
-            Quaternion::new(x, y, z, w)
+            Quaternion::new(w, x, y, z)
         } else {
             let s = ((mat[2][2] - mat[0][0] - mat[1][1]) + 1.0f32).sqrt();
             let z = HALF * s;
@@ -319,7 +319,7 @@ impl RotationMatrix {
             let x = (mat[0][2] + mat[2][0]) * s;
             let y = (mat[2][1] + mat[1][2]) * s;
             let w = (mat[0][1] - mat[1][0]) * s;
-            Quaternion::new(x, y, z, w)
+            Quaternion::new(w, x, y, z)
         }
     }
 

@@ -11,43 +11,43 @@ pub struct Quaternion {
 }
 
 impl Quaternion {
-    /// Create identity quaternion.
-    /// # Example
-    /// ```
-    /// use cgt_math::Quaternion;
-    /// let a = Quaternion::IDENTITY;
-    /// let b = Quaternion::new(0.0, 0.0, 0.0, 1.0);
-    /// assert_eq!(a, b);
-    /// ```
     pub const IDENTITY: Self = Self::new(0.0, 0.0, 0.0, 1.0);
     pub const NAN: Self = Self::new(f32::NAN, f32::NAN, f32::NAN, f32::NAN);
 
-    /// Create new quaternion.
-    /// # Example
-    /// ```
-    /// use cgt_math::Quaternion;
-    /// let a = Quaternion::new(3.0, 2.0, 1.0, 5.0);
-    /// ```
-    pub const fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
-        Self {
-            v: Vector4 { x, y, z, w },
-        }
-    }
-
-    /// Create new quaternion from vector.
+    /// Create new quaternion. Vector4 != Quaternion layout.
     /// # Example
     /// ```
     /// use cgt_math::{Quaternion, Vector4};
-    /// let v = Vector4::new(1.0, 2.0, 3.0, 1.0);
-    /// let q = Quaternion::new(1.0, 2.0, 3.0, 1.0);
+    /// let a = Quaternion::new(5.0, 2.0, 1.0, 3.0);
+    /// ```
+    pub const fn new(w: f32, x: f32, y: f32, z: f32) -> Self {
+        Self { v: Vector4 { x, y, z, w } }
+    }
+
+    pub const fn xyzw(x: f32, y: f32, z: f32, w: f32) -> Self {
+        Self { v: Vector4 { x, y, z, w } }
+    }
+
+    pub const fn wxyz(w: f32, x: f32, y: f32, z: f32) -> Self {
+        Self { v: Vector4 { x, y, z, w } }
+    }
+
+    /// Create new quaternion from vector. 
+    /// Quaternion Order: [w, x, y, z]
+    /// Vector Order: [x, y, z, w]
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion, Vector4};
+    /// let v = Vector4::new(5.0, 2.0, 3.0, 1.0);
+    /// let q = Quaternion::new(1.0, 5.0, 2.0, 3.0);
     /// let vq = Quaternion::from_vec(v);
     /// assert_eq!(q, vq);
     /// ```
-    pub const fn from_vec(vec: Vector4) -> Self {
-        Self { v: vec }
+    pub const fn from_vec(v: Vector4) -> Self {
+        Self { v }
     }
 
-    /// Create new quaternion from array..
+    /// Create new quaternion from array. [w, x, y, z]
     /// # Example
     /// ```
     /// use cgt_math::{Quaternion, Vector4};
@@ -56,11 +56,16 @@ impl Quaternion {
     #[inline]
     pub const fn from_array(a: [f32; 4]) -> Self {
         Self {
-            v: Vector4::from_array(a),
+            v: Vector4 {
+                x: a[1],
+                y: a[2],
+                z: a[3],
+                w: a[0],
+            }
         }
     }
 
-    /// `[x, y, z, w]`
+    /// Returns quaternion as array: [w, y, x, z]
     /// # Example
     /// ```
     /// use cgt_math::{Quaternion, Vector4};
@@ -69,7 +74,7 @@ impl Quaternion {
     /// ```
     #[inline]
     pub const fn to_array(&self) -> [f32; 4] {
-        self.v.to_array()
+        [self.v.w, self.v.x, self.v.y, self.v.z]
     }
 
     // based on opengl rotation tutorial added track and up axis
@@ -84,7 +89,7 @@ impl Quaternion {
     /// let dest = Vector3::new(0.0, -2.0, 1.0);
     /// let dir = (dest-eye).normalize();
     /// let v = Quaternion::rotate_towards(dir, Vector3::X, Vector3::Z);
-    /// let q2 = Quaternion::new(-0.32531965, -0.16741525, -0.82751817, 0.42585564);
+    /// let q2 = Quaternion::xyzw(-0.32531965, -0.16741525, -0.82751817, 0.42585564);
     /// assert_eq!(v, q2);
     /// ```
     pub fn rotate_towards(dir: Vector3, track: Vector3, up: Vector3) -> Self {
@@ -114,38 +119,38 @@ impl Quaternion {
         let s: f32 = ((1.0f32+cos_theta)*2.0f32).sqrt();
         let invs: f32 = 1.0/s;
         Quaternion::new(
+            s*0.5f32,
             rot_axis.x*invs,
             rot_axis.y*invs,
             rot_axis.z*invs,
-            s*0.5f32
         )
     }
 
     pub fn from_axis_angle(axis: Vector3, angle: f32) -> Self {
         let (s, c) = (angle * 0.5).sin_cos();
         let v = axis * s;
-        Self::new(v.x, v.y, v.z, c)
+        Self::new(c, v.x, v.y, v.z)
     }
 
     /// Creates a quaternion from the `angle` (in radians) around the x axis.
     #[inline]
     pub fn from_rotation_x(angle: f32) -> Self {
         let (s, c) = (angle * 0.5).sin_cos();
-        Self::new(s, 0.0, 0.0, c)
+        Self::new(c, s, 0.0, 0.0)
     }
 
     /// Creates a quaternion from the `angle` (in radians) around the y axis.
     #[inline]
     pub fn from_rotation_y(angle: f32) -> Self {
         let (s, c) = (angle * 0.5).sin_cos();
-        Self::new(0.0, s, 0.0, c)
+        Self::new(c, 0.0, s, 0.0)
     }
 
     /// Creates a quaternion from the `angle` (in radians) around the z axis.
     #[inline]
     pub fn from_rotation_z(angle: f32) -> Self {
         let (s, c) = (angle * 0.5).sin_cos();
-        Self::new(0.0, 0.0, s, c)
+        Self::new(c, 0.0, 0.0, s)
     }
 
     pub fn quat_to_rotation_matrix(&self) -> RotationMatrix {
@@ -153,7 +158,8 @@ impl Quaternion {
     }
 
     /// From the columns of a 3x3 rotation matrix.
-    /// Based on https://github.com/microsoft/DirectXMath `XM$quaternionRotationMatrix`
+    /// Based on https://github.com/bitshifter/glam-rs && https://github.com/microsoft/DirectXMath `XM$quaternionRotationMatrix`
+    /// 
     #[inline]
     pub fn from_rotation_axes(x: Vector3, y: Vector3, z: Vector3) -> Self {
         let (m00, m01, m02) = (x.x, x.y, x.z);
@@ -167,7 +173,7 @@ impl Quaternion {
                 // x^2 >= y^2
                 let four_xsq = omm22 - dif10;
                 let inv4x = 0.5 / four_xsq.sqrt();
-                Self::new(
+                Self::xyzw(
                     four_xsq * inv4x,
                     (m01 + m10) * inv4x,
                     (m02 + m20) * inv4x,
@@ -177,7 +183,7 @@ impl Quaternion {
                 // y^2 >= x^2
                 let four_ysq = omm22 + dif10;
                 let inv4y = 0.5 / four_ysq.sqrt();
-                Self::new(
+                Self::xyzw(
                     (m01 + m10) * inv4y,
                     four_ysq * inv4y,
                     (m12 + m21) * inv4y,
@@ -192,7 +198,7 @@ impl Quaternion {
                 // z^2 >= w^2
                 let four_zsq = opm22 - sum10;
                 let inv4z = 0.5 / four_zsq.sqrt();
-                Self::new(
+                Self::xyzw(
                     (m02 + m20) * inv4z,
                     (m12 + m21) * inv4z,
                     four_zsq * inv4z,
@@ -202,7 +208,7 @@ impl Quaternion {
                 // w^2 >= z^2
                 let four_wsq = opm22 + sum10;
                 let inv4w = 0.5 / four_wsq.sqrt();
-                Self::new(
+                Self::xyzw(
                     (m12 - m21) * inv4w,
                     (m20 - m02) * inv4w,
                     (m01 - m10) * inv4w,
@@ -428,7 +434,7 @@ impl Quaternion {
     /// ```
     /// use cgt_math::Quaternion;
     /// let a = Quaternion::new(12.0, -3.0, 4.0, 1.0);
-    /// assert_eq!(a.sum(), 13.0);
+    /// assert_eq!(a.sum(), 14.0);
     /// ```
     pub fn sum(&self) -> f32 {
         self.v.sum()
@@ -492,19 +498,6 @@ impl Quaternion {
         self.v.is_normalized()
     }
 
-    /// Returns the inverse of this vector.
-    /// # Example:
-    /// ```
-    /// use cgt_math::Quaternion;
-    /// Quaternion::new(42.0, 1.0, 3.0, 1.0).inverse();
-    /// Quaternion::new(0.023809524, 1.0, 0.33333334, 1.0);
-    /// ```
-    pub fn inverse(&self) -> Self {
-        Self {
-            v: self.v.inverse(),
-        }
-    }
-
     pub fn invert(&self) -> Self {
         let f: f32 = self.dot(*self);
         if f == 0.0f32 {
@@ -513,7 +506,7 @@ impl Quaternion {
         self.conjugate() * 1.0 / f
     }
 
-    pub fn rotation_between_quats(&self, other: Self) -> Self {
+    pub fn rotation_between_offset(&self, other: Self) -> Self {
         let mut v = self.conjugate();
         v *= 1.0f32 / self.dot(*self);
         v*other
@@ -542,7 +535,7 @@ impl Add for Quaternion {
 impl Sub for Quaternion {
     type Output = Quaternion;
     fn sub(self, other: Self) -> Self::Output {
-        let rhs = Quaternion::new(other.v.x, other.v.y, other.v.z, -other.v.w);
+        let rhs = Quaternion::new(-other.v.w, other.v.x, other.v.y, -other.v.z);
         self * rhs
     }
 }
@@ -556,7 +549,6 @@ impl Div<f32> for Quaternion {
     }
 }
 
-// Scalar multiplication
 impl Mul<f32> for Quaternion {
     type Output = Quaternion;
     fn mul(self, val: f32) -> Self::Output {
@@ -575,7 +567,6 @@ impl MulAssign<f32> for Quaternion {
 impl Mul<Quaternion> for Quaternion {
     type Output = Quaternion;
     fn mul(self, other: Self) -> Self::Output {
-
         let a = &self.v;
         let b = &other.v;
         let mut v = Vector4::ZERO;
@@ -614,14 +605,15 @@ impl PartialEq for Quaternion {
     }
 }
 
+// Returns w-x-y-z when indexing.
 impl Index<usize> for Quaternion {
     type Output = f32;
     fn index(&self, index: usize) -> &Self::Output {
         match index {
-            0 => &self.v.x,
-            1 => &self.v.y,
-            2 => &self.v.z,
-            3 => &self.v.w,
+            0 => &self.v.w,
+            1 => &self.v.x,
+            2 => &self.v.y,
+            3 => &self.v.z,
             _ => panic!("Index Error: {}", index),
         }
     }

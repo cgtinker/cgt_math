@@ -65,9 +65,8 @@ impl Mat4x4 {
 
     // TODO: move to quat
     #[inline]
-    fn quat_to_axes(rotation: Quaternion) -> (Vector4, Vector4, Vector4) {
-        let arr = rotation.to_array();
-        let (x, y, z, w) = (arr[0], arr[1], arr[2], arr[3]);
+    fn quat_to_axes(q: Quaternion) -> (Vector4, Vector4, Vector4) {
+        let (x, y, z, w) = (q.v.x, q.v.y, q.v.z, q.v.w);
         let x2 = x + x;
         let y2 = y + y;
         let z2 = z + z;

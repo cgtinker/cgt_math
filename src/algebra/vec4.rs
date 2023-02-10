@@ -461,11 +461,11 @@ impl Vector4 {
     /// ```
     /// use cgt_math::Vector4;
     /// let a = Vector4::new(12.0, -3.0, 4.0, 1.0);
-    /// assert_eq!(a.sum(), 13.0);
+    /// assert_eq!(a.sum(), 14.0);
     /// ```
     #[inline]
     pub fn sum(&self) -> f32 {
-        self.x + self.y + self.z
+        self.x + self.y + self.z + self.w
     }
 
     /// Returns this distance squared to another vector.

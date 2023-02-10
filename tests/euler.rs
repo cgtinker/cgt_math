@@ -15,20 +15,20 @@ mod tests {
 
     #[test]
     fn test_to_quat() {
-        let q = Quaternion::new(0.0, 0.0, 0.0, 1.0);
+        let q = Quaternion::new(1.0, 0.0, 0.0, 0.0);
         let e = round_e(Euler::from_quat(q, EulerOrder::XYZ));
         assert_eq!(e, Euler::new(0.0, 0.0, 0.0));
 
 
-        let q = Quaternion::new(1.0, 0.0, 0.0, 1.0);
+        let q = Quaternion::new(1.0, 1.0, 0.0, 0.0);
         let e = round_e(Euler::from_quat(q, EulerOrder::XYZ));
         assert_eq!(e, Euler::new(1.571, 0.0, 0.0));
 
-        let q = Quaternion::new(0.0, 1.0, 0.0, 1.0);
+        let q = Quaternion::new(1.0, 0.0, 1.0, 0.0);
         let e = round_e(Euler::from_quat(q, EulerOrder::XYZ));
         assert_eq!(e, Euler::new(0.0, 1.571, 0.0));
 
-        let q = Quaternion::new(0.0, 0.0, 1.0, 1.0);
+        let q = Quaternion::new(1.0, 0.0, 0.0, 1.0);
         let e = round_e(Euler::from_quat(q, EulerOrder::XYZ));
         assert_eq!(e, Euler::new(0.0, 0.0, 1.571));
     }
