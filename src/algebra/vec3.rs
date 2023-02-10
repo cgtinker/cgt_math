@@ -704,11 +704,7 @@ impl Vector3 {
     /// ```
     #[inline]
     pub fn interpolate_cubic(&self, v1: Self, v2: Self, w: Self) -> Self {
-        Self {
-            x: self.x * w.x + v1.x * w.y + v2.x * w.z,
-            y: self.y * w.x + v1.y * w.y + v2.y * w.z,
-            z: self.z * w.x + v1.z * w.y + v2.z * w.z,
-        }
+        *self * w.x + v1 * w.y + v2 * w.z
     }
 
     /// Returns center of two points.
@@ -721,11 +717,7 @@ impl Vector3 {
     /// ```
     #[inline]
     pub fn center(&self, other: Self) -> Self {
-        Self {
-            x: (self.x + other.x)*0.5f32,
-            y: (self.y + other.y)*0.5f32,
-            z: (self.z + other.z)*0.5f32,
-        }
+        (*self+other)*0.5f32
     }
 
     /// Returns center of three points.
@@ -739,11 +731,7 @@ impl Vector3 {
     /// ```
     #[inline]
     pub fn center_of_three(&self, v1: Self, v2: Self) -> Self {
-        Self {
-            x: (self.x + v1.x + v2.x)/3.0f32,
-            y: (self.y + v1.y + v2.y)/3.0f32,
-            z: (self.z + v1.z + v2.z)/3.0f32,
-        }
+        (*self+v1+v2)/3.0f32
     }
 
 }
