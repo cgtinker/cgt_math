@@ -9,7 +9,6 @@ pub struct Vector3 {
     pub z: f32,
 }
 
-
 impl Vector3 {
     pub const ZERO: Self = Self::new(0.0, 0.0, 0.0);
     pub const ONE: Self = Self::new(1.0, 1.0, 1.0);
@@ -814,7 +813,7 @@ impl Mul<f32> for Vector3 {
 impl Mul<Quaternion> for Vector3 {
     type Output = Self;
     fn mul(self, quat: Quaternion) -> Self::Output {
-        let q = &quat.q;
+        let q = &quat.v;
         let u = Vector3::new(q.x, q.y, q.z);
         let s = q.w;
 

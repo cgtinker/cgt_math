@@ -208,11 +208,11 @@ impl Add<Quaternion> for f32 {
     type Output = Quaternion;
     fn add(self, rhs: Quaternion) -> Self::Output {
         Quaternion {
-            q: Vector4 {
-                x: self + rhs.q.x,
-                y: self + rhs.q.y,
-                z: self + rhs.q.z,
-                w: self + rhs.q.w,
+            v: Vector4 {
+                x: self + rhs.v.x,
+                y: self + rhs.v.y,
+                z: self + rhs.v.z,
+                w: self + rhs.v.w,
             }
         }
     }
@@ -222,11 +222,11 @@ impl Sub<Quaternion> for f32 {
     type Output = Quaternion;
     fn sub(self, rhs: Quaternion) -> Self::Output {
         Quaternion {
-            q: Vector4 {
-                x: self - rhs.q.x,
-                y: self - rhs.q.y,
-                z: self - rhs.q.z,
-                w: self - rhs.q.w,
+            v: Vector4 {
+                x: self - rhs.v.x,
+                y: self - rhs.v.y,
+                z: self - rhs.v.z,
+                w: self - rhs.v.w,
             }
         }
     }
@@ -237,11 +237,11 @@ impl Mul<Quaternion> for f32 {
     type Output = Quaternion;
     fn mul(self, rhs: Quaternion) -> Self::Output {
         Quaternion {
-            q: Vector4 {
-                x: self * rhs.q.x,
-                y: self * rhs.q.y,
-                z: self * rhs.q.z,
-                w: self * rhs.q.w,
+            v: Vector4 {
+                x: self * rhs.v.x,
+                y: self * rhs.v.y,
+                z: self * rhs.v.z,
+                w: self * rhs.v.w,
             }
         }
     }
@@ -251,11 +251,11 @@ impl Div<Quaternion> for f32{
     type Output = Quaternion;
     fn div(self, rhs: Quaternion) -> Self::Output {
         Quaternion {
-            q: Vector4 {
-                x: self / rhs.q.x,
-                y: self / rhs.q.y,
-                z: self / rhs.q.z,
-                w: self / rhs.q.w,
+            v: Vector4 {
+                x: self / rhs.v.x,
+                y: self / rhs.v.y,
+                z: self / rhs.v.z,
+                w: self / rhs.v.w,
             }
         }
     }

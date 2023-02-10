@@ -7,7 +7,7 @@ use std::ops::{Add, Index, Mul, MulAssign, Neg, Sub, Div};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Quaternion {
-    pub q: Vector4,
+    pub v: Vector4,
 }
 
 impl Quaternion {
@@ -30,7 +30,7 @@ impl Quaternion {
     /// ```
     pub const fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
         Self {
-            q: Vector4 { x, y, z, w },
+            v: Vector4 { x, y, z, w },
         }
     }
 
@@ -44,19 +44,19 @@ impl Quaternion {
     /// assert_eq!(q, vq);
     /// ```
     pub const fn from_vec(vec: Vector4) -> Self {
-        Self { q: vec }
+        Self { v: vec }
     }
 
     /// Create new quaternion from array..
     /// # Example
     /// ```
     /// use cgt_math::{Quaternion, Vector4};
-    /// let q = Quaternion::from_array([1.0, 2.3, 1.0, 0.0]);
+    /// let v = Quaternion::from_array([1.0, 2.3, 1.0, 0.0]);
     /// ```
     #[inline]
     pub const fn from_array(a: [f32; 4]) -> Self {
         Self {
-            q: Vector4::from_array(a),
+            v: Vector4::from_array(a),
         }
     }
 
@@ -64,12 +64,12 @@ impl Quaternion {
     /// # Example
     /// ```
     /// use cgt_math::{Quaternion, Vector4};
-    /// let q = Quaternion::from_array([1.0, 2.3, 1.0, 0.0]);
-    /// let arr = q.to_array();
+    /// let v = Quaternion::from_array([1.0, 2.3, 1.0, 0.0]);
+    /// let arr = v.to_array();
     /// ```
     #[inline]
     pub const fn to_array(&self) -> [f32; 4] {
-        self.q.to_array()
+        self.v.to_array()
     }
 
     // based on opengl rotation tutorial added track and up axis
@@ -83,9 +83,9 @@ impl Quaternion {
     /// let eye = Vector3::new(2.5, 1.5, -3.0);
     /// let dest = Vector3::new(0.0, -2.0, 1.0);
     /// let dir = (dest-eye).normalize();
-    /// let q = Quaternion::rotate_towards(dir, Vector3::X, Vector3::Z);
+    /// let v = Quaternion::rotate_towards(dir, Vector3::X, Vector3::Z);
     /// let q2 = Quaternion::new(-0.32531965, -0.16741525, -0.82751817, 0.42585564);
-    /// assert_eq!(q, q2);
+    /// assert_eq!(v, q2);
     /// ```
     pub fn rotate_towards(dir: Vector3, track: Vector3, up: Vector3) -> Self {
         cgt_assert!(dir.is_normalized());
@@ -226,7 +226,7 @@ impl Quaternion {
     /// assert!(a.is_nan());
     /// ```
     pub fn is_nan(&self) -> bool {
-        self.q.is_nan()
+        self.v.is_nan()
     }
 
     /// Returns if any vector component is infinte.
@@ -237,14 +237,14 @@ impl Quaternion {
     /// assert!(a.is_infinite());
     /// ```
     pub fn is_infinite(&self) -> bool {
-        self.q.is_infinite()
+        self.v.is_infinite()
     }
 
     /// Returns `true` if, and only if, all elements are finite.  If any element is either
     /// `NaN`, positive or negative infinity, this will return `false`.
     #[inline]
     pub fn is_finite(self) -> bool {
-        self.q.is_finite()
+        self.v.is_finite()
     }
 
     /// Returns vector with absolute values.
@@ -256,7 +256,7 @@ impl Quaternion {
     /// assert_eq!(a.abs(), b);
     /// ```
     pub fn abs(self) -> Self {
-        Self { q: self.q.abs() }
+        Self { v: self.v.abs() }
     }
 
     /// Returns vector with ceiled values.
@@ -268,7 +268,7 @@ impl Quaternion {
     /// assert_eq!(a.ceil(), b);
     /// ```
     pub fn ceil(&self) -> Self {
-        Self { q: self.q.ceil() }
+        Self { v: self.v.ceil() }
     }
 
     /// Returns vector with floored values.
@@ -280,7 +280,7 @@ impl Quaternion {
     /// assert_eq!(a.floor(), b);
     /// ```
     pub fn floor(&self) -> Self {
-        Self { q: self.q.floor() }
+        Self { v: self.v.floor() }
     }
 
     /// Returns vector with rounded values.
@@ -292,7 +292,7 @@ impl Quaternion {
     /// assert_eq!(a.round(), b);
     /// ```
     pub fn round(&self) -> Self {
-        Self { q: self.q.round() }
+        Self { v: self.v.round() }
     }
 
     /// Returns vector with clamped values.
@@ -305,7 +305,7 @@ impl Quaternion {
     /// ```
     pub fn clamp(&self, min: f32, max: f32) -> Self {
         Self {
-            q: self.q.clamp(min, max),
+            v: self.v.clamp(min, max),
         }
     }
 
@@ -319,7 +319,7 @@ impl Quaternion {
     /// ```
     pub fn powf(&self, var: f32) -> Self {
         Self {
-            q: self.q.powf(var),
+            v: self.v.powf(var),
         }
     }
 
@@ -347,7 +347,7 @@ impl Quaternion {
     /// ```
     pub fn min(&self, other: &Self) -> Self {
         Self {
-            q: self.q.min(&other.q),
+            v: self.v.min(&other.v),
         }
     }
 
@@ -362,7 +362,7 @@ impl Quaternion {
     /// ```
     pub fn max(&self, other: &Self) -> Self {
         Self {
-            q: self.q.max(&other.q),
+            v: self.v.max(&other.v),
         }
     }
 
@@ -375,7 +375,7 @@ impl Quaternion {
     /// assert_eq!(a.trunc(), b);
     /// ```
     pub fn trunc(&self) -> Self {
-        Self { q: self.q.trunc() }
+        Self { v: self.v.trunc() }
     }
 
     /// Returns dot product of this with another vector.
@@ -387,7 +387,7 @@ impl Quaternion {
     /// assert_eq!(a.dot(b), 40.0);
     /// ```
     pub fn dot(&self, other: Self) -> f32 {
-        self.q.dot(other.q)
+        self.v.dot(other.v)
     }
 
     /// Returns length squared of this vector.
@@ -431,7 +431,7 @@ impl Quaternion {
     /// assert_eq!(a.sum(), 13.0);
     /// ```
     pub fn sum(&self) -> f32 {
-        self.q.sum()
+        self.v.sum()
     }
 
     /// Returns this distance squared to another vector.
@@ -443,7 +443,7 @@ impl Quaternion {
     /// assert_eq!(a.distance_to_squared(b), 205.0);
     /// ```
     pub fn distance_to_squared(&self, other: Self) -> f32 {
-        self.q.distance_to_squared(other.q)
+        self.v.distance_to_squared(other.v)
     }
 
     /// Returns this distance squared to another vector.
@@ -467,7 +467,7 @@ impl Quaternion {
     /// assert_eq!(a.angle(b), 1.6298717);
     /// ```
     pub fn angle(&self, other: Self) -> f32 {
-        self.q.angle(other.q)
+        self.v.angle(other.v)
     }
 
     /// Returns normalized vector.
@@ -479,7 +479,7 @@ impl Quaternion {
     /// assert_eq!(a.normalize(), b);
     /// ```
     pub fn normalize(&self) -> Self {
-        let len = self.q.length();
+        let len = self.v.length();
         if len != 0.0 {
             *self * (1.0/len)
         }
@@ -489,7 +489,7 @@ impl Quaternion {
     }
 
     pub fn is_normalized(&self) -> bool {
-        self.q.is_normalized()
+        self.v.is_normalized()
     }
 
     /// Returns the inverse of this vector.
@@ -501,7 +501,7 @@ impl Quaternion {
     /// ```
     pub fn inverse(&self) -> Self {
         Self {
-            q: self.q.inverse(),
+            v: self.v.inverse(),
         }
     }
 
@@ -514,18 +514,18 @@ impl Quaternion {
     }
 
     pub fn rotation_between_quats(&self, other: Self) -> Self {
-        let mut q = self.conjugate();
-        q *= 1.0f32 / self.dot(*self);
-        q*other
+        let mut v = self.conjugate();
+        v *= 1.0f32 / self.dot(*self);
+        v*other
     }
 
     pub fn conjugate(&self) -> Self {
         Self {
-            q: Vector4 {
-                x: -self.q.x,
-                y: -self.q.y,
-                z: -self.q.z,
-                w: self.q.w,
+            v: Vector4 {
+                x: -self.v.x,
+                y: -self.v.y,
+                z: -self.v.z,
+                w: self.v.w,
             },
         }
     }
@@ -539,7 +539,7 @@ impl Quaternion {
     #[inline]
     pub fn lerp(self, rhs: Self, s: f32) -> Self {
         Self {
-            q: self.q.lerp(rhs.q, s),
+            v: self.v.lerp(rhs.v, s),
         }
     }
 }
@@ -554,7 +554,7 @@ impl Add for Quaternion {
 impl Sub for Quaternion {
     type Output = Quaternion;
     fn sub(self, other: Self) -> Self::Output {
-        let rhs = Quaternion::new(other.q.x, other.q.y, other.q.z, -other.q.w);
+        let rhs = Quaternion::new(other.v.x, other.v.y, other.v.z, -other.v.w);
         self * rhs
     }
 }
@@ -563,7 +563,7 @@ impl Div<f32> for Quaternion {
     type Output = Quaternion;
     fn div(self, val: f32) -> Self::Output {
         Self {
-            q: Vector4::div(self.q, val),
+            v: Vector4::div(self.v, val),
         }
     }
 }
@@ -573,14 +573,14 @@ impl Mul<f32> for Quaternion {
     type Output = Quaternion;
     fn mul(self, val: f32) -> Self::Output {
         Self {
-            q: Vector4::mul(self.q, val),
+            v: Vector4::mul(self.v, val),
         }
     }
 }
 
 impl MulAssign<f32> for Quaternion {
     fn mul_assign(&mut self, val: f32) {
-        self.q *= val
+        self.v *= val
     }
 }
 
@@ -588,26 +588,26 @@ impl Mul<Quaternion> for Quaternion {
     type Output = Quaternion;
     fn mul(self, other: Self) -> Self::Output {
 
-        let a = &self.q;
-        let b = &other.q;
-        let mut q = Vector4::ZERO;
-        q.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
-        q.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
-        q.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
-        q.z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
-        Quaternion::from_vec(q)
+        let a = &self.v;
+        let b = &other.v;
+        let mut v = Vector4::ZERO;
+        v.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+        v.x = a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y;
+        v.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
+        v.z = a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x;
+        Quaternion::from_vec(v)
     }
 }
 
 // Quat mul
 impl MulAssign<Quaternion> for Quaternion {
     fn mul_assign(&mut self, other: Self) {
-        let q1 = self.q;
-        let q2 = &other.q;
-        self.q.x =  q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
-        self.q.y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
-        self.q.z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
-        self.q.w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
+        let q1 = self.v;
+        let q2 = &other.v;
+        self.v.x =  q1.x * q2.w + q1.y * q2.z - q1.z * q2.y + q1.w * q2.x;
+        self.v.y = -q1.x * q2.z + q1.y * q2.w + q1.z * q2.x + q1.w * q2.y;
+        self.v.z =  q1.x * q2.y - q1.y * q2.x + q1.z * q2.w + q1.w * q2.z;
+        self.v.w = -q1.x * q2.x - q1.y * q2.y - q1.z * q2.z + q1.w * q2.w;
     }
 }
 
@@ -615,14 +615,14 @@ impl Neg for Quaternion {
     type Output = Quaternion;
     fn neg(self) -> Self::Output {
         Self {
-            q: Vector4::neg(&self.q),
+            v: Vector4::neg(&self.v),
         }
     }
 }
 
 impl PartialEq for Quaternion {
     fn eq(&self, other: &Self) -> bool {
-        self.q == other.q
+        self.v == other.v
     }
 }
 
@@ -630,10 +630,10 @@ impl Index<usize> for Quaternion {
     type Output = f32;
     fn index(&self, index: usize) -> &Self::Output {
         match index {
-            0 => &self.q.x,
-            1 => &self.q.y,
-            2 => &self.q.z,
-            3 => &self.q.w,
+            0 => &self.v.x,
+            1 => &self.v.y,
+            2 => &self.v.z,
+            3 => &self.v.w,
             _ => panic!("Index Error: {}", index),
         }
     }

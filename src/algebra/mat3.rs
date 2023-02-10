@@ -220,17 +220,17 @@ impl RotationMatrix {
     pub fn from_quaternion(q: Quaternion) -> Self {
         cgt_assert!(q.is_normalized());
 
-        let xx = q.q.x*q.q.x;
-        let xy = q.q.x*q.q.y;
-        let xz = q.q.x*q.q.z;
-        let xw = q.q.x*q.q.w;
+        let xx = q.v.x*q.v.x;
+        let xy = q.v.x*q.v.y;
+        let xz = q.v.x*q.v.z;
+        let xw = q.v.x*q.v.w;
 
-        let yy = q.q.y*q.q.y;
-        let yz = q.q.y*q.q.z;
-        let yw = q.q.y*q.q.w;
+        let yy = q.v.y*q.v.y;
+        let yz = q.v.y*q.v.z;
+        let yw = q.v.y*q.v.w;
 
-        let zz = q.q.z*q.q.z;
-        let zw = q.q.z*q.q.w;
+        let zz = q.v.z*q.v.z;
+        let zw = q.v.z*q.v.w;
 
         RotationMatrix::new(
             1.0-2.0*(yy+zz),

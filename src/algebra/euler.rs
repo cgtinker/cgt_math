@@ -86,7 +86,7 @@ impl Euler {
     }
 
     fn heading(quat: Quaternion, order: EulerOrder) -> f32 {
-        let q = quat.q;
+        let q = quat.v;
         match order {
             EulerOrder::XYZ => (-2.0 * (q.y * q.z - q.w * q.x))
                 .atan2(q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z),
@@ -107,7 +107,7 @@ impl Euler {
     }
 
     fn attitude(quat: Quaternion, order: EulerOrder) -> f32 {
-        let q = quat.q;
+        let q = quat.v;
         match order {
             EulerOrder::XYZ => (2.0 * (q.x * q.z + q.w * q.y)).clamp(-1.0, 1.0).asin(),
             EulerOrder::XZY => (-2.0 * (q.x * q.y - q.w * q.z)).clamp(-1.0, 1.0).asin(),
@@ -119,7 +119,7 @@ impl Euler {
     }
 
     fn bank(quat: Quaternion, order: EulerOrder) -> f32 {
-        let q = quat.q;
+        let q = quat.v;
         match order {
             EulerOrder::XYZ => (-2.0 * (q.x * q.y - q.w * q.z))
                 .atan2(q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z),
