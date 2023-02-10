@@ -644,7 +644,8 @@ impl Vector3 {
         }
     }
 
-    /// Returns any perpendicular to this vector.
+    /// [Depreciated] Returns any perpendicular to this vector.
+    /// Will be replaced by orthogonal.
     /// # Example:
     /// ```
     /// use cgt_math::Vector3;
@@ -725,7 +726,7 @@ impl Vector3 {
     /// use cgt_math::Vector3;
     /// let a = Vector3::new(3.0, 0.0, 3.0);
     /// let b = Vector3::new(2.0, 0.0, 0.0);
-    /// let c = Vector3::new(-2.0, 0.0, 3.0);
+    /// let c = Vector3::new(-2.0,0.0, 3.0);
     /// assert_eq!(a.center_of_three(b, c), Vector3::new(1.0, 0.0, 2.0));
     /// ```
     #[inline]
