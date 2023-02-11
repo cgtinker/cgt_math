@@ -11,23 +11,52 @@ pub struct Quaternion {
 }
 
 impl Quaternion {
-    pub const IDENTITY: Self = Self::new(0.0, 0.0, 0.0, 1.0);
+    /// Create new quaternion.
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion, Vector4};
+    /// let a = Quaternion::IDENTITY;
+    /// let b = Quaternion::wxyz(1.0, 0.0, 0.0, 0.0);
+    /// assert_eq!(a, b);
+    /// ```
+    pub const IDENTITY: Self = Self::new(1.0, 0.0, 0.0, 0.0);
     pub const NAN: Self = Self::new(f32::NAN, f32::NAN, f32::NAN, f32::NAN);
 
-    /// Create new quaternion. Vector4 != Quaternion layout.
+    /// Create new quaternion.
     /// # Example
     /// ```
     /// use cgt_math::{Quaternion, Vector4};
     /// let a = Quaternion::new(5.0, 2.0, 1.0, 3.0);
+    /// let b = Quaternion::wxyz(5.0, 2.0, 1.0, 3.0);
+    /// assert_eq!(a, b);
     /// ```
+    #[inline]
     pub const fn new(w: f32, x: f32, y: f32, z: f32) -> Self {
         Self { v: Vector4 { x, y, z, w } }
     }
 
+    /// Create new quaternion.
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion, Vector4};
+    /// let a = Quaternion::new(5.0, 2.0, 1.0, 3.0);
+    /// let b = Quaternion::xyzw(2.0, 1.0, 3.0, 5.0);
+    /// assert_eq!(a, b);
+    /// ```
+    #[inline]
     pub const fn xyzw(x: f32, y: f32, z: f32, w: f32) -> Self {
         Self { v: Vector4 { x, y, z, w } }
     }
 
+    /// Create new quaternion.
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion, Vector4};
+    /// let a = Quaternion::new(5.0, 2.0, 1.0, 3.0);
+    /// let b = Quaternion::wxyz(5.0, 2.0, 1.0, 3.0);
+    /// assert_eq!(a, b);
+    /// ```
+    #[inline]
     pub const fn wxyz(w: f32, x: f32, y: f32, z: f32) -> Self {
         Self { v: Vector4 { x, y, z, w } }
     }
@@ -39,10 +68,11 @@ impl Quaternion {
     /// ```
     /// use cgt_math::{Quaternion, Vector4};
     /// let v = Vector4::new(5.0, 2.0, 3.0, 1.0);
-    /// let q = Quaternion::new(1.0, 5.0, 2.0, 3.0);
+    /// let q = Quaternion::wxyz(1.0, 5.0, 2.0, 3.0);
     /// let vq = Quaternion::from_vec(v);
     /// assert_eq!(q, vq);
     /// ```
+    #[inline]
     pub const fn from_vec(v: Vector4) -> Self {
         Self { v }
     }
@@ -51,7 +81,8 @@ impl Quaternion {
     /// # Example
     /// ```
     /// use cgt_math::{Quaternion, Vector4};
-    /// let v = Quaternion::from_array([1.0, 2.3, 1.0, 0.0]);
+    /// let q = Quaternion::from_array([1.0, 2.3, 1.0, 0.0]);
+    /// assert_eq!(q, Quaternion::wxyz(1.0, 2.3, 1.0, 0.0))
     /// ```
     #[inline]
     pub const fn from_array(a: [f32; 4]) -> Self {
@@ -71,6 +102,7 @@ impl Quaternion {
     /// use cgt_math::{Quaternion, Vector4};
     /// let v = Quaternion::from_array([1.0, 2.3, 1.0, 0.0]);
     /// let arr = v.to_array();
+    /// assert_eq!(arr, [1.0, 2.3, 1.0, 0.0]);
     /// ```
     #[inline]
     pub const fn to_array(&self) -> [f32; 4] {
@@ -92,6 +124,7 @@ impl Quaternion {
     /// let q2 = Quaternion::xyzw(-0.32531965, -0.16741525, -0.82751817, 0.42585564);
     /// assert_eq!(v, q2);
     /// ```
+    #[inline]
     pub fn rotate_towards(dir: Vector3, track: Vector3, up: Vector3) -> Self {
         cgt_assert!(dir.is_normalized());
         cgt_assert!(track != up);
@@ -106,7 +139,16 @@ impl Quaternion {
         q2 * q1
     }
 
-    // based on opengl rotation tutorial
+    /// Returns the rotation between to vectors.
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion, Vector3};
+    /// let v1 = Vector3::new(1.0, 2.0, 0.5);
+    /// let v2 = Vector3::new(0.5, 0.5, 2.0);
+    /// let q = Quaternion::rotation_between(v1.normalize(), v2.normalize());
+    /// assert_eq!(q.fround(4), Quaternion::xyzw(0.4433207, -0.20688298, -0.059109423, 0.87015647).fround(4));
+    /// ```
+    #[inline]
     pub fn rotation_between(start: Vector3, dest: Vector3) -> Self {
         cgt_assert!(start.is_normalized());
         cgt_assert!(dest.is_normalized());
@@ -126,42 +168,90 @@ impl Quaternion {
         )
     }
 
+    /// Returns a quaternion from an angle to an axis.
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion, Vector3};
+    /// use std::f32::consts::PI;
+    /// let v1 = Vector3::new(0.0, 2.0, 1.0);
+    /// let q = Quaternion::from_axis_angle(v1, PI/2.0);
+    /// assert_eq!(q.fround(4), Quaternion::xyzw(0.0, 1.4142135, 0.70710677, 0.70710677).fround(4));
+    /// ```
+    #[inline]
     pub fn from_axis_angle(axis: Vector3, angle: f32) -> Self {
         let (s, c) = (angle * 0.5).sin_cos();
         let v = axis * s;
         Self::new(c, v.x, v.y, v.z)
     }
 
-    /// Creates a quaternion from the `angle` (in radians) around the x axis.
+    /// Returns the rotation to the x-axis from an angle.
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion};
+    /// use std::f32::consts::PI;
+    /// let q = Quaternion::from_rotation_x(PI/2.0);
+    /// assert_eq!(q.fround(4), Quaternion::new(0.70710677, 0.70710677, 0.0, 0.0).fround(4));
+    /// ```
     #[inline]
     pub fn from_rotation_x(angle: f32) -> Self {
         let (s, c) = (angle * 0.5).sin_cos();
         Self::new(c, s, 0.0, 0.0)
     }
 
-    /// Creates a quaternion from the `angle` (in radians) around the y axis.
+    /// Returns the rotation to the y-axis from an angle.
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion};
+    /// use std::f32::consts::PI;
+    /// let q = Quaternion::from_rotation_y(PI/2.0);
+    /// assert_eq!(q.fround(4), Quaternion::new(0.70710677, 0.0, 0.70710677, 0.0).fround(4));
+    /// ```
     #[inline]
     pub fn from_rotation_y(angle: f32) -> Self {
         let (s, c) = (angle * 0.5).sin_cos();
         Self::new(c, 0.0, s, 0.0)
     }
 
-    /// Creates a quaternion from the `angle` (in radians) around the z axis.
+    /// Returns the rotation to the z-axis from an angle.
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion};
+    /// use std::f32::consts::PI;
+    /// let q = Quaternion::from_rotation_z(PI/2.0);
+    /// assert_eq!(q.fround(4), Quaternion::new(0.70710677, 0.0, 0.0, 0.70710677).fround(4));
+    /// ```
     #[inline]
     pub fn from_rotation_z(angle: f32) -> Self {
         let (s, c) = (angle * 0.5).sin_cos();
         Self::new(c, 0.0, 0.0, s)
     }
 
+    /// Converts quaternion to rotation matrix..
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion, RotationMatrix};
+    /// let q = Quaternion::IDENTITY;
+    /// let m = q.quat_to_rotation_matrix();
+    /// assert_eq!(m, RotationMatrix::IDENTITY);
+    /// ```
+    #[inline]
     pub fn quat_to_rotation_matrix(&self) -> RotationMatrix {
         RotationMatrix::from_quaternion(*self)
     }
 
-    /// From the columns of a 3x3 rotation matrix.
-    /// Based on https://github.com/bitshifter/glam-rs && https://github.com/microsoft/DirectXMath `XM$quaternionRotationMatrix`
-    /// 
+    /// Create quaternion from the columns of a 3x3 rotation matrix.
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion, Vector3};
+    /// let x = Vector3::new(1.0, 0.0, 0.0);
+    /// let y = Vector3::new(0.0, 1.0, 0.0);
+    /// let z = Vector3::new(0.0, 0.0, 1.0);
+    /// let q = Quaternion::from_rotation_axes(x, y, z);
+    /// assert_eq!(q, Quaternion::IDENTITY);
+    /// ```
     #[inline]
     pub fn from_rotation_axes(x: Vector3, y: Vector3, z: Vector3) -> Self {
+        // Based on https://github.com/bitshifter/glam-rs && https://github.com/microsoft/DirectXMath `XM$quaternionRotationMatrix`
         let (m00, m01, m02) = (x.x, x.y, x.z);
         let (m10, m11, m12) = (y.x, y.y, y.z);
         let (m20, m21, m22) = (z.x, z.y, z.z);
@@ -219,6 +309,12 @@ impl Quaternion {
     }
 
     /// Creates a quaternion from a 3x3 rotation matrix.
+    /// # Example
+    /// ```
+    /// use cgt_math::{Quaternion, RotationMatrix};
+    /// let q = Quaternion::from_rotation_matrix(&RotationMatrix::IDENTITY);
+    /// assert_eq!(q, Quaternion::IDENTITY);
+    /// ```
     #[inline]
     pub fn from_rotation_matrix(mat: &RotationMatrix) -> Self {
         Self::from_rotation_axes(mat.x, mat.y, mat.z)
@@ -231,23 +327,32 @@ impl Quaternion {
     /// let a = Quaternion::new(0.0, 421.0, f32::NAN, f32::NAN);
     /// assert!(a.is_nan());
     /// ```
+    #[inline]
     pub fn is_nan(&self) -> bool {
         self.v.is_nan()
     }
 
-    /// Returns if any vector component is infinte.
+    /// Returns if any component is infinte.
     /// # Example
     /// ```
     /// use cgt_math::Quaternion;
     /// let a = Quaternion::new(0.0, 421.0, f32::INFINITY, f32::NAN);
     /// assert!(a.is_infinite());
     /// ```
+    #[inline]
     pub fn is_infinite(&self) -> bool {
         self.v.is_infinite()
     }
 
-    /// Returns `true` if, and only if, all elements are finite.  If any element is either
-    /// `NaN`, positive or negative infinity, this will return `false`.
+    /// Returns if all components are finite.
+    /// # Example
+    /// ```
+    /// use cgt_math::Quaternion;
+    /// let a = Quaternion::new(0.0, 421.0, f32::INFINITY, f32::NAN);
+    /// let b = Quaternion::new(0.0, 421.0, 1.0, 0.5);
+    /// assert!(!a.is_finite());
+    /// assert!(b.is_finite());
+    /// ```
     #[inline]
     pub fn is_finite(self) -> bool {
         self.v.is_finite()
@@ -261,44 +366,22 @@ impl Quaternion {
     /// let b = Quaternion ::new(1.0, 0.0, 2.0, 1.0);
     /// assert_eq!(a.abs(), b);
     /// ```
+    #[inline]
     pub fn abs(self) -> Self {
         Self { v: self.v.abs() }
-    }
-
-    /// Returns vector with ceiled values.
-    /// # Example:
-    /// ```
-    /// use cgt_math::Quaternion;
-    /// let a = Quaternion::new(-1.3, 0.9, 2.5, 1.0);
-    /// let b = Quaternion::new(-1.0, 1.0, 3.0, 1.0);
-    /// assert_eq!(a.ceil(), b);
-    /// ```
-    pub fn ceil(&self) -> Self {
-        Self { v: self.v.ceil() }
-    }
-
-    /// Returns vector with floored values.
-    /// # Example:
-    /// ```
-    /// use cgt_math::Quaternion;
-    /// let a = Quaternion::new(-1.3, 0.9, 2.5, 1.0);
-    /// let b = Quaternion::new(-2.0, 0.0, 2.0, 1.0);
-    /// assert_eq!(a.floor(), b);
-    /// ```
-    pub fn floor(&self) -> Self {
-        Self { v: self.v.floor() }
     }
 
     /// Returns vector with rounded values.
     /// # Example:
     /// ```
     /// use cgt_math::Quaternion;
-    /// let a = Quaternion::new(-1.3, 0.9, 2.5, 1.0);
-    /// let b = Quaternion::new(-1.0, 1.0, 3.0, 1.0);
-    /// assert_eq!(a.round(), b);
+    /// let a = Quaternion::new(-1.331234, 0.9414214, 2.14245, 1.04124);
+    /// let b = Quaternion::new(-1.33, 0.94, 2.14, 1.04);
+    /// assert_eq!(a.fround(2), b);
     /// ```
-    pub fn round(&self) -> Self {
-        Self { v: self.v.round() }
+    #[inline]
+    pub fn fround(&self, k: u32) -> Self {
+        Self { v: self.v.fround(k) }
     }
 
     /// Returns vector with clamped values.
@@ -309,6 +392,7 @@ impl Quaternion {
     /// let b = Quaternion::new(-1.0, 0.9, 1.0, 1.0);
     /// assert_eq!(a.clamp(-1.0, 1.0), b);
     /// ```
+    #[inline]
     pub fn clamp(&self, min: f32, max: f32) -> Self {
         Self {
             v: self.v.clamp(min, max),
@@ -323,6 +407,7 @@ impl Quaternion {
     /// let b = Quaternion::new(4.0, 1.0, 9.0, 4.0);
     /// assert_eq!(a.powf(2.0), b);
     /// ```
+    #[inline]
     pub fn powf(&self, var: f32) -> Self {
         Self {
             v: self.v.powf(var),
@@ -338,6 +423,7 @@ impl Quaternion {
     /// let b = Quaternion::new(4.0, 1.0, 9.0, 1.0);
     /// assert_eq!(a.pow(2), b);
     /// ```
+    #[inline]
     pub fn pow(&self, var: i32) -> Self {
         self.powf(var as f32)
     }
@@ -351,6 +437,7 @@ impl Quaternion {
     /// let c = Quaternion::new(2.0, -1.0, 3.0, 1.0);
     /// assert_eq!(a.min(&b), c);
     /// ```
+    #[inline]
     pub fn min(&self, other: &Self) -> Self {
         Self {
             v: self.v.min(&other.v),
@@ -366,6 +453,7 @@ impl Quaternion {
     /// let c = Quaternion::new(4.0, 1.0, 9.0, 1.0);
     /// assert_eq!(a.max(&b), c);
     /// ```
+    #[inline]
     pub fn max(&self, other: &Self) -> Self {
         Self {
             v: self.v.max(&other.v),
@@ -380,6 +468,7 @@ impl Quaternion {
     /// let b = Quaternion::new(2.0, 1.0, 3.0, 1.0);
     /// assert_eq!(a.trunc(), b);
     /// ```
+    #[inline]
     pub fn trunc(&self) -> Self {
         Self { v: self.v.trunc() }
     }
@@ -392,6 +481,7 @@ impl Quaternion {
     /// let b = Quaternion::new(3.0, 3.0, 3.0, 1.0);
     /// assert_eq!(a.dot(b), 40.0);
     /// ```
+    #[inline]
     pub fn dot(&self, other: Self) -> f32 {
         self.v.dot(other.v)
     }
@@ -403,6 +493,7 @@ impl Quaternion {
     /// let a = Quaternion::new(12.0, -3.0, 4.0, 1.0);
     /// assert_eq!(a.length_squared(), 170.0);
     /// ```
+    #[inline]
     pub fn length_squared(&self) -> f32 {
         self.dot(*self)
     }
@@ -414,6 +505,7 @@ impl Quaternion {
     /// let a = Quaternion::new(12.0, -3.0, 4.0, 1.0);
     /// assert_eq!(a.length(), 13.038404);
     /// ```
+    #[inline]
     pub fn length(&self) -> f32 {
         self.length_squared().sqrt()
     }
@@ -425,6 +517,7 @@ impl Quaternion {
     /// let a = Quaternion::new(12.0, -3.0, 4.0, 1.0);
     /// assert_eq!(a.length(), 13.038404);
     /// ```
+    #[inline]
     pub fn magnitude(&self) -> f32 {
         self.length()
     }
@@ -436,6 +529,7 @@ impl Quaternion {
     /// let a = Quaternion::new(12.0, -3.0, 4.0, 1.0);
     /// assert_eq!(a.sum(), 14.0);
     /// ```
+    #[inline]
     pub fn sum(&self) -> f32 {
         self.v.sum()
     }
@@ -448,6 +542,7 @@ impl Quaternion {
     /// let b = Quaternion::new(-1.0, 3.0, 4.0, 1.0);
     /// assert_eq!(a.distance_to_squared(b), 205.0);
     /// ```
+    #[inline]
     pub fn distance_to_squared(&self, other: Self) -> f32 {
         self.v.distance_to_squared(other.v)
     }
@@ -460,6 +555,7 @@ impl Quaternion {
     /// let b = Quaternion::new(-1.0, 3.0, 4.0, 1.0);
     /// assert_eq!(a.distance_to(b), 14.3178215);
     /// ```
+    #[inline]
     pub fn distance_to(&self, other: Self) -> f32 {
         self.distance_to_squared(other).sqrt()
     }
@@ -472,11 +568,12 @@ impl Quaternion {
     /// let b = Quaternion::new(-1.0, 3.0, 4.0, 1.0);
     /// assert_eq!(a.angle(b), 1.6298717);
     /// ```
+    #[inline]
     pub fn angle(&self, other: Self) -> f32 {
         self.v.angle(other.v)
     }
 
-    /// Returns normalized vector.
+    /// Returns normalized quaternion.
     /// # Example:
     /// ```
     /// use cgt_math::Quaternion;
@@ -484,6 +581,7 @@ impl Quaternion {
     /// let b = Quaternion::new(0.09304842, -0.18609685, 0.97700846, 0.04652421);
     /// assert_eq!(a.normalize(), b);
     /// ```
+    #[inline]
     pub fn normalize(&self) -> Self {
         let len = self.v.length();
         if len != 0.0 {
@@ -494,10 +592,29 @@ impl Quaternion {
         }
     }
 
+    /// Checks if quaternion is normalized.
+    /// # Example:
+    /// ```
+    /// use cgt_math::Quaternion;
+    /// let a = Quaternion::new(2.0, -4.0, 21.0, 1.0);
+    /// assert!(!a.is_normalized());
+    /// assert!(a.normalize().is_normalized());
+    /// ```
+    #[inline]
     pub fn is_normalized(&self) -> bool {
         self.v.is_normalized()
     }
 
+    /// Returns an inverted quaternion.
+    /// # Example:
+    /// ```
+    /// use cgt_math::Quaternion;
+    /// let q = Quaternion::new(2.0, -4.0, 21.0, 1.0).invert();
+    /// assert_eq!(
+    ///     q.fround(4),
+    ///     Quaternion::xyzw(0.008658, -0.0454, -0.00212, 0.0043).fround(4));
+    /// ```
+    #[inline]
     pub fn invert(&self) -> Self {
         let f: f32 = self.dot(*self);
         if f == 0.0f32 {
@@ -506,12 +623,32 @@ impl Quaternion {
         self.conjugate() * 1.0 / f
     }
 
-    pub fn rotation_between_offset(&self, other: Self) -> Self {
+    /// Returns the rotation offset from this, to another quaternion.
+    /// # Example:
+    /// ```
+    /// use cgt_math::Quaternion;
+    /// let a = Quaternion::new(2.0, -4.0, 21.0, 1.0);
+    /// let b = Quaternion::new(0.5, 1.0, 1.0, 2.0);
+    /// assert_eq!(
+    ///     a.rotation_offset(b).fround(4), 
+    ///     Quaternion::xyzw(-0.08008, -0.03787, 0.061688, 0.0432).fround(4));
+    /// ```
+    #[inline]
+    pub fn rotation_offset(&self, other: Self) -> Self {
         let mut v = self.conjugate();
         v *= 1.0f32 / self.dot(*self);
         v*other
     }
 
+    /// Conjugates Quaternion.
+    /// # Example:
+    /// ```
+    /// use cgt_math::Quaternion;
+    /// let a = Quaternion::new(1.0, -3.0, 4.0, 1.0);
+    /// let b = Quaternion::new(1.0, 3.0, -4.0, -1.0);
+    /// assert_eq!(a.conjugate(), b);
+    /// ```
+    #[inline]
     pub fn conjugate(&self) -> Self {
         Self {
             v: Vector4 {

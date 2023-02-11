@@ -201,7 +201,7 @@ impl RotationMatrix {
             (Euler::new(x, y, z), Euler::new(xx, yy, zz))
         }
         else {
-            // gibal lock state
+            // gimbal lock state
             let z = 0.0f32;
             let y = PI/2.0;
             let x = -m[2][1].atan2(m[1][1]);
@@ -215,9 +215,9 @@ impl RotationMatrix {
     }
 
 
-    // https://www.euclideanspace.com/maths/geometry/rotations/conversions/
     #[inline]
     pub fn from_quaternion(q: Quaternion) -> Self {
+        // https://www.euclideanspace.com/maths/geometry/rotations/conversions/
         cgt_assert!(q.is_normalized());
 
         let xx = q.v.x*q.v.x;

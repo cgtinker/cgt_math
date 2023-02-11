@@ -615,8 +615,6 @@ impl Vector2 {
             // counter clockwise
             Vector2 { x: -self.y, y: self.x }
         }
-
-        return Vector2::ZERO;
     }
     
 
